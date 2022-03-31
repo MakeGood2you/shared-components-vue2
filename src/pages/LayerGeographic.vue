@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { dia, ui, setTheme, shapes, util, elementTools } from '@clientio/rappid';
+import { dia, elementTools, setTheme, shapes, ui, util } from '@clientio/rappid';
 import { Link } from '@/dataMappingLogic/shapes';
 import { Decorator } from '@/dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '@/dataMappingLogic/link-tools';
@@ -159,9 +159,12 @@ export default Vue.extend({
     },
 
     itemEditAction(element, itemId) {
-
+      console.log(itemId, ' => itemId')
+      console.log(element, ' => element')
       const config = element.getInspectorConfig(itemId);
+      console.log(config, ' => config')
       const path = element.getItemPathArray(itemId);
+      console.log(path, ' => path')
       this.itemAction(element, config, path);
     },
 
@@ -398,9 +401,9 @@ export default Vue.extend({
     });
 
     paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
+      debugger
       evt.stopPropagation();
       const model = elementView.model;
-debugger
       this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
     });
 
@@ -468,22 +471,12 @@ debugger
     this.paper = paper
     this.toolbar = toolbar
   },
-  mounted() {
-    const { scroller, paper, toolbar, $refs: { canvas } } = this;
-    canvas.appendChild(this.scroller.el);
-    canvas.appendChild(this.toolbar.el);
-    toolbar.el.style.height = this.toolbarHeight + 'px';
-
-    scroller.center();
-    paper.unfreeze();
-
-  }
 })
 </script>
 
 <style lang="scss">
 @import "~@clientio/rappid/rappid.css";
-@import './DataMappingLogic/styles.scss';
+@import '../DataMappingLogic/styles.scss';
 
 body {
   height: 100vh;
