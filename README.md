@@ -1,24 +1,26 @@
-# shared-components-vue2
+# @template-pro/vue2-component-library
 
-## Project setup
-```
-npm install
-```
+> webpack4 + vue2 + vuepress 组件库模板
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## 使用
 
-### Compiles and minifies for production
-```
-npm run build
-```
+### GitHub Template
 
-### Run your unit tests
-```
-npm run test:unit
+[Create a repo from this template on GitHub.](https://github.com/template-pro/vue2-component-library/generate)
+
+### 使用 [degit](https://github.com/Rich-Harris/degit)
+
+```bash
+npx tiged https://github.com/template-pro/vue2-component-library#main -m=git my-project
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 开发
+
+```bash
+npm install # 安装依赖
+
+# npm run dev  # localhost:8088 组件开发预览
+# npm run dev:docs  # localhost:8089 组件文档开发预览
+# npm run build # 构建 library
+# npm run build:docs # 构建文档
+```
