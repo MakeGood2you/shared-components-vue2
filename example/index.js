@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import templateComp from '@template-pro/vue2-component-library'
+import templateComp from '@shared-components-vue2'
 
 /*
 import templateComp from '../dist/vue2-component-library.js'

@@ -1,6 +1,6 @@
 {
-  "name": "@template-pro/vue2-component-library",
-  "version": "0.0.0",
+  "name": "shared-components-vue2",
+  "version": "0.0.3",
   "description": "vue2 component library template",
   "main": "dist/vue2-component-library.js",
   "files": [
@@ -19,10 +19,6 @@
     "release:minor:beta": "release-it minor --preReleaseId=beta --preRelease --ci",
     "prepare": "husky install"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/template-pro/vue2-component-library.git"
-  },
   "keywords": [
     "vue2",
     "component",
@@ -30,14 +26,10 @@
     "vue2-component-library"
   ],
   "author": {
-    "name": "Wuxh",
-    "email": "wxh1220@gmail.com"
+    "name": "otailo",
+    "email": "otailo@gmail.com"
   },
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/template-pro/vue2-component-library/issues"
-  },
-  "homepage": "https://github.com/template-pro/vue2-component-library#readme",
   "peerDependencies": {
     "vue": "^2"
   },
