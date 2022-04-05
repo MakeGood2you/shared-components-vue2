@@ -1,6 +1,6 @@
 {
   "name": "shared-components-vue2",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "description": "",
   "main": "dist/shared-components-vue2.ssr.js",
   "browser": "dist/shared-components-vue2.esm.js",
