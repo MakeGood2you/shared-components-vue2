@@ -1,5 +1,5 @@
 {
-  "name": "shared-components-vue2",
+  "name": "@OtailO-recommerce/shared-components-vue2",
   "version": "0.0.3",
   "description": "vue2 component library template",
   "main": "dist/vue2-component-library.js",
