@@ -1,0 +1,38 @@
+# Based on https://docs.github.com/en/packages/quickstart
+
+name: Package
+
+on:
+  release:
+    types: [created]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+jobs:
+  publish-gpr:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Node setup
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          registry-url: https://npm.pkg.github.com/
+      - name: Complete installation
+        run: npm install
+      - name: Build
+        run: npm run build
+      #- name: Test
+      #  run: npm test:unit
+      #  env:
+      #    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ECR_ACCESS_KEY }}
+      #    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ECR_SECRET_KEY }}
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -1,4 +1,4 @@
-# shared-component-ts-vue2
+# shared-components-vue2
 
 ## Project setup
 ```
