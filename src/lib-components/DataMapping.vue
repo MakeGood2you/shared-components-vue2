@@ -1,7 +1,5 @@
 <template>
   <div class="canvas" ref="canvas"></div>
-  <!--  <v-breadcrump :items="items" />-->
-
 </template>
 
 <script>
