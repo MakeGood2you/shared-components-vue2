@@ -1,7 +1,7 @@
 <script>
 import Vue from 'vue';
 // Uncomment import and local "components" registration if library is not registered globally.
-import { SharedComponentsVue2Sample } from '@/entry.esm';
+// import { SharedComponentsVue2Sample } from '@/entry.esm';
 
 export default Vue.extend({
   name: 'ServeDev',
@@ -13,6 +13,7 @@ export default Vue.extend({
 
 <template>
   <div id="app">
+    <DataMapping/>
     <shared-components-vue2-sample />
   </div>
 </template>
