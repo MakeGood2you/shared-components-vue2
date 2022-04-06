@@ -484,7 +484,7 @@ export default Vue.extend({
 
 <style lang="scss">
 @import "~@clientio/rappid/rappid.css";
-@import '../DataMappingLogic/styles.scss';
+@import '../dataMappingLogic/styles.scss';
 
 body {
   height: 100vh;
