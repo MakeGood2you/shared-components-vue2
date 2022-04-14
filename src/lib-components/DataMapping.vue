@@ -330,7 +330,6 @@ export default Vue.extend({
       }
     });
     toolbar.on('svg:pointerclick', () => {
-      debugger
       paper.toSVG((svg) => {
         new ui.Lightbox({
           image: 'data:image/svg+xml,' + encodeURIComponent(svg),
@@ -430,7 +429,6 @@ export default Vue.extend({
     paper.on('element:pointermove', function (view, evt, x, y) {
       const data = evt.data;
       let ghost = data.ghost;
-      debugger
       if (!ghost) {
         const position = view.model.position();
         ghost = view.vel.clone();
