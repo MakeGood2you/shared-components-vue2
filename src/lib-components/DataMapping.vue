@@ -42,6 +42,7 @@ export default Vue.extend({
       });
       linkView.addTools(tools);
     },
+
     linkAction(link) {
       const dialog = new ui.Dialog({
         title: 'Confirmation',
@@ -64,6 +65,7 @@ export default Vue.extend({
         }
       });
     },
+
     showElementTools(elementView) {
       const element = elementView.model;
       const padding = util.normalizeSides(element.get('padding'));
