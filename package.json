@@ -8,7 +8,9 @@
   "unpkg": "dist/shared-components-vue2.min.js",
   "files": [
     "dist/*",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "node_modules/@clientio/**/*",
+    "rappid.tgz"
   ],
   "sideEffects": false,
   "scripts": {
@@ -22,6 +24,7 @@
   "dependencies": {
     "@clientio/rappid": "file:./rappid.tgz"
   },
+
   "devDependencies": {
     "@babel/core": "^7.14.6",
     "@babel/preset-env": "^7.14.7",

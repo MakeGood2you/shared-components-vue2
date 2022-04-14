@@ -364,7 +364,6 @@ function init() {
     objectMapperTransformer.compile()
 
     const outputJson = objectMapperTransformer.mapObject({ data : inputJson })
-    debugger
     const objectMapperShape = objectMapperSchema2Shape(objectMapperTransformer.schema)
     const inputShape = transformJSONShape(inputJson)
     const outputShape = transformJSONShape(outputJson)

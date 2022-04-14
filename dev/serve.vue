@@ -14,6 +14,6 @@ export default Vue.extend({
 <template>
   <div id="app">
     <DataMapping/>
-    <shared-components-vue2-sample />
+<!--    <shared-components-vue2-sample />-->
   </div>
 </template>

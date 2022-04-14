@@ -4,7 +4,7 @@
 
 <script>
 
-import { dia, ui, setTheme, shapes, util, elementTools } from '@clientio/rappid';
+import { dia, elementTools, setTheme, shapes, ui, util } from '@clientio/rappid';
 import { Link } from '../dataMappingLogic/shapes';
 import { Decorator } from '../dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
@@ -35,8 +35,6 @@ export default Vue.extend({
           new Button({
             distance: '25%',
             action: function () {
-              console.log(this)
-              console.log(self)
               self.linkAction(this.model);
             }
           })
@@ -286,8 +284,10 @@ export default Vue.extend({
           return false;
         if (end === 'target') {
           const targetItemId = tv.findAttribute('item-id', tm);
+          console.log('tvModel.isItemInView(targetItemId) ===> ', tvModel.isItemInView(targetItemId))
           if (!tvModel.isItemInView(targetItemId))
             return false;
+          console.log('tvModel.getItemSide(targetItemId) =-=-=> ', tvModel.getItemSide(targetItemId))
           return (tvModel.getItemSide(targetItemId) !== 'right');
         }
         const sourceItemId = sv.findAttribute('item-id', sm);
@@ -331,6 +331,7 @@ export default Vue.extend({
       }
     });
     toolbar.on('svg:pointerclick', () => {
+      debugger
       paper.toSVG((svg) => {
         new ui.Lightbox({
           image: 'data:image/svg+xml,' + encodeURIComponent(svg),
@@ -395,10 +396,15 @@ export default Vue.extend({
     });
 
     paper.on('link:mouseleave', (linkView) => {
+      let element = linkView
+      let A = linkView.findRoute()
+
+      debugger
       linkView.removeTools();
     });
 
     paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
+      debugger
       evt.stopPropagation();
       const model = elementView.model;
       debugger
@@ -431,6 +437,7 @@ export default Vue.extend({
     paper.on('element:pointermove', function (view, evt, x, y) {
       const data = evt.data;
       let ghost = data.ghost;
+      debugger
       if (!ghost) {
         const position = view.model.position();
         ghost = view.vel.clone();
@@ -444,7 +451,9 @@ export default Vue.extend({
     });
 
     paper.on('element:pointerup', (view, evt, x, y) => {
+      debugger
       const data = evt.data;
+      debugger
       if (data.ghost) {
         data.ghost.remove();
         view.model.position(x - data.dx, y - data.dy);
@@ -468,6 +477,10 @@ export default Vue.extend({
     this.scroller = scroller
     this.paper = paper
     this.toolbar = toolbar
+    const links = this.graph.getConnectedLinks()
+    // const toJson = graph.toJSON()
+    // const fromJson = graph.fromJSON()
+    debugger
   },
   mounted() {
     const { scroller, paper, toolbar, $refs: { canvas } } = this;
@@ -477,7 +490,6 @@ export default Vue.extend({
 
     scroller.center();
     paper.unfreeze();
-
   }
 })
 </script>
