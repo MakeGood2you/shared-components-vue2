@@ -299,9 +299,8 @@ export default Vue.extend({
     const scroller = new ui.PaperScroller({
       paper,
       cursor: 'grab',
-      autoResizePaper: true,
-      baseWidth: 1,
-      baseHeight: 1,
+      baseWidth: 2000,
+      baseHeight: 2000,
       inertia: { friction: 0.8 },
       borderless: true
     });
@@ -396,18 +395,12 @@ export default Vue.extend({
     });
 
     paper.on('link:mouseleave', (linkView) => {
-      let element = linkView
-      let A = linkView.findRoute()
-
-      debugger
       linkView.removeTools();
     });
 
     paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
-      debugger
       evt.stopPropagation();
       const model = elementView.model;
-      debugger
       this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
     });
 
@@ -451,9 +444,7 @@ export default Vue.extend({
     });
 
     paper.on('element:pointerup', (view, evt, x, y) => {
-      debugger
       const data = evt.data;
-      debugger
       if (data.ghost) {
         data.ghost.remove();
         view.model.position(x - data.dx, y - data.dy);
@@ -477,10 +468,6 @@ export default Vue.extend({
     this.scroller = scroller
     this.paper = paper
     this.toolbar = toolbar
-    const links = this.graph.getConnectedLinks()
-    // const toJson = graph.toJSON()
-    // const fromJson = graph.fromJSON()
-    debugger
   },
   mounted() {
     const { scroller, paper, toolbar, $refs: { canvas } } = this;
@@ -498,18 +485,13 @@ export default Vue.extend({
 @import "~@clientio/rappid/rappid.css";
 @import '../dataMappingLogic/styles.scss';
 
-body {
-  height: 100vh;
-  box-sizing: border-box;
-  margin: 0;
+.canvas {
+  width: 100%;
+  height: 100%;
 
-  .canvas {
-    width: 100%;
-    height: 100%;
-
-    .joint-paper {
-      border: 1px solid #A0A0A0;
-    }
+  .joint-paper {
+    border: 1px solid #A0A0A0;
   }
 }
+
 </style>
