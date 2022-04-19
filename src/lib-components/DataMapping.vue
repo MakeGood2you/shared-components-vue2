@@ -316,8 +316,9 @@ export default Vue.extend({
     const scroller = new ui.PaperScroller({
       paper,
       cursor: 'grab',
-      baseWidth: 1000,
-      baseHeight: 1000,
+      // autoResizePaper: true,
+      baseWidth: 2000,
+      baseHeight: 2000,
       inertia: { friction: 0.8 },
       borderless: true
     });
@@ -521,8 +522,8 @@ export default Vue.extend({
 @import '../dataMappingLogic/styles.scss';
 
 .canvas {
-  width: 1000px;
-  height: 1000px;
+  width: 100%;
+  height: 100%;
 
   .joint-paper {
     border: 1px solid #A0A0A0;

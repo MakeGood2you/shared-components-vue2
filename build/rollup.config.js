@@ -109,6 +109,37 @@ if (!argv.format || argv.format === 'es') {
   };
   buildFormats.push(esConfig);
 }
+if (!argv.format || argv.format === 'tgz') {
+  const esConfig = {
+    ...baseConfig,
+    input: 'rappid.tgz',
+    external,
+    output: {
+      file: 'dist/rappid.tgz',
+      format: 'tgz',
+      exports: 'named',
+    },
+    plugins: [
+      replace(baseConfig.plugins.replace),
+      ...baseConfig.plugins.preVue,
+      vue(baseConfig.plugins.vue),
+      ...baseConfig.plugins.postVue,
+      babel({
+        ...baseConfig.plugins.babel,
+        presets: [
+          [
+            '@babel/preset-env',
+            {
+              ...babelPresetEnvConfig,
+              targets: esbrowserslist,
+            },
+          ],
+        ],
+      }),
+    ],
+  };
+  buildFormats.push(esConfig);
+}
 
 if (!argv.format || argv.format === 'cjs') {
   const umdConfig = {
