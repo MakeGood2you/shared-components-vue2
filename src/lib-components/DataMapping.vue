@@ -11,10 +11,24 @@ import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/li
 import { routerNamespace } from '../dataMappingLogic/routers';
 import { anchorNamespace } from '../dataMappingLogic/anchors';
 import { loadExample } from '../dataMappingLogic/example';
+import init from '../dataMappingLogic/init'
+
 import Vue from 'vue';
 
 export default Vue.extend({
   name: "DataMapping",
+
+  props: {
+    objectMapperSchema: {
+      type: Object,
+      required: true,
+    },
+    inputJson: {
+      type: Object,
+      required: true
+    }
+  },
+
   data: () => ({
     $refs: {
       canvas: HTMLDivElement
@@ -23,7 +37,8 @@ export default Vue.extend({
     paper: dia.Paper,
     scroller: ui.PaperScroller,
     toolbar: ui.Toolbar,
-    toolbarHeight: 50
+    toolbarHeight: 50,
+    Records: loadExample
   }),
   methods: {
     showLinkTools(linkView) {
@@ -301,8 +316,8 @@ export default Vue.extend({
     const scroller = new ui.PaperScroller({
       paper,
       cursor: 'grab',
-      baseWidth: 2000,
-      baseHeight: 2000,
+      baseWidth: 1000,
+      baseHeight: 1000,
       inertia: { friction: 0.8 },
       borderless: true
     });
@@ -371,7 +386,14 @@ export default Vue.extend({
 
     commandManager.stopListening();
 
-    loadExample(graph)
+    const {
+      inputShape,
+      objectMapperShape,
+      outputShape,
+      objectMapperValues
+    } = init(this.objectMapperSchema, this.inputJson)
+
+    loadExample(graph, { inputShape, objectMapperShape, outputShape }, { objectMapperValues })
 
     commandManager.listen();
 
@@ -391,7 +413,20 @@ export default Vue.extend({
       scroller.zoom(delta * 0.2, { min: 0.4, max: 3, grid: 0.2, ox: x, oy: y });
     }
 
+    paper.on('link:connect', (linkView) => {
+
+      // this.showLinkTools(linkView);
+    });
+    paper.on('link:pointerclick', (linkView) => {
+
+      // this.showLinkTools(linkView);
+    });
+    paper.on('link:disconnect', (linkView) => {
+
+      // this.showLinkTools(linkView);
+    });
     paper.on('link:mouseenter', (linkView) => {
+
       this.showLinkTools(linkView);
     });
 
@@ -486,8 +521,8 @@ export default Vue.extend({
 @import '../dataMappingLogic/styles.scss';
 
 .canvas {
-  width: 100%;
-  height: 100%;
+  width: 1000px;
+  height: 1000px;
 
   .joint-paper {
     border: 1px solid #A0A0A0;
