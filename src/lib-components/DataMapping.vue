@@ -618,6 +618,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import "~@clientio/rappid/rappid.css";
 @import '../dataMappingLogic/styles.scss';
 
 .canvas {

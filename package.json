@@ -9,7 +9,8 @@
   "files": [
     "dist/*",
     "src/**/*.vue",
-    "rappid.tgz"
+    "rappid.tgz",
+    "src/dataMappingLogic/styles.scss"
   ],
   "sideEffects": false,
   "scripts": {
@@ -45,7 +46,7 @@
     "vue": "^2.6.14",
     "vue-template-compiler": "^2.6.14",
     "sass": "^1.32.7",
-    "sass-loader": "^10.1.1"
+    "sass-loader": "^10.2.1"
   },
   "peerDependencies": {
     "vue": "^2.6.14"
