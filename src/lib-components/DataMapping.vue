@@ -619,11 +619,11 @@ export default Vue.extend({
 
 <style lang="scss" >
 @import "~@clientio/rappid/rappid.css";
-//@import '../dataMappingLogic/styles.scss';
+@import '../dataMappingLogic/styles.scss';
 
 .canvas {
-  width: 100vw;
-  height: 100vh;
+  width: 95vw;
+  height: 80vh;
 
   .joint-paper {
     border: 1px solid #A0A0A0;
