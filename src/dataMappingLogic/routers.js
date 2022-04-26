@@ -3,7 +3,7 @@ import { routers, g } from '@clientio/rappid';
 const DEFAULT_PADDING = 10;
 
 function getOutsidePoint(bbox, angle, anchor, padding) {
-    // debugger
+    // 
     const ref = anchor.clone();
     const center = bbox.center();
     if (angle)
@@ -20,7 +20,7 @@ function getOutsidePoint(bbox, angle, anchor, padding) {
 }
 
 const mapping = function (vertices, opt, linkView) {
-    // debugger
+    // 
     const link = linkView.model;
     const route = [];
     // Target Point

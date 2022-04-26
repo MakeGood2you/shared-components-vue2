@@ -10,7 +10,8 @@ import { Decorator } from '../dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
 import { routerNamespace } from '../dataMappingLogic/routers';
 import { anchorNamespace } from '../dataMappingLogic/anchors';
-import { loadExample } from '../dataMappingLogic/example';
+import { loadExample, records } from '../dataMappingLogic/example';
+import { _replaceAll } from '../utils/strings';
 import init from '../dataMappingLogic/init'
 
 import Vue from 'vue';
@@ -38,7 +39,7 @@ export default Vue.extend({
     scroller: ui.PaperScroller,
     toolbar: ui.Toolbar,
     toolbarHeight: 50,
-    Records: loadExample
+    commandManager: dia.CommandManager
   }),
   methods: {
     showLinkTools(linkView) {
@@ -168,6 +169,74 @@ export default Vue.extend({
       });
     },
 
+    getItemByPath(items, path) {
+      const item = items
+      if (path.length <= 1) {
+        return item
+      }
+      path.shift()
+      return this.getItemByPath(items[path[0]], path)
+    },
+
+    linkEditAction(element, itemId, updateData, options) {
+
+      const { linkView, evt, magnet, arrowhead, eventName } = options
+
+      const path = element.getItemPathArray(itemId)
+      this.editRecord(element, itemId, path, updateData, eventName)
+    },
+
+    editRecord(element, itemId, path, updateData, eventName) {
+      if (!itemId) return;
+
+      let items = element.attributes.items
+      const item = this.getItemByPath(items, path)
+
+      if (item._path && eventName === 'connect') {
+        const inspector = new ui.Inspector({
+          cell: element,
+          live: false,
+        });
+        inspector.render();
+        inspector.el.style.position = 'relative';
+        inspector.el.style.overflow = 'hidden';
+
+        const dialog = new ui.Dialog({
+          width: 300,
+          title: 'Are you sure you want to replace this ?',
+          closeButton: false,
+          content: inspector.el,
+          buttons: [{
+            content: 'Cancel',
+            action: 'cancel'
+          }, {
+            content: '<span style="color:#fe854f">Confirm</span>',
+            action: 'confirm'
+          }]
+        });
+
+        dialog.open();
+        dialog.on({
+          'action:cancel': function () {
+            this.commandManager.undo()
+            inspector.remove();
+            dialog.close();
+          }.bind(this),
+          'action:confirm': function () {
+            element.item(itemId, updateData)
+            inspector.remove();
+            dialog.close();
+          }.bind(this)
+        });
+      } else {
+
+        element.item(itemId, updateData)
+      }
+
+      // const path = record.getItemPathArray(itemId);
+      // const path = util.setByPath({ _path: 'TEST' }, itemPath)
+    },
+
     itemDecoratorEditAction(element, itemId) {
       const config = { [itemId]: { type: 'content-editable', label: 'Decorator' } };
       const path = ['decorators'];
@@ -175,11 +244,17 @@ export default Vue.extend({
     },
 
     itemEditAction(element, itemId) {
+      let config = null
+      if (element.id === records.ObjectMapper.id) {
+        config = element.getObjectMapperInspectorConfig(itemId);
+      } else {
+        config = element.getJSONInspectorConfig(itemId);
+      }
 
-      const config = element.getInspectorConfig(itemId);
       const path = element.getItemPathArray(itemId);
       this.itemAction(element, config, path);
     },
+
 
     itemAction(element, config, itemPath) {
 
@@ -191,7 +266,6 @@ export default Vue.extend({
         live: false,
         inputs: util.setByPath({}, itemPath, config)
       });
-
       inspector.render();
       inspector.el.style.position = 'relative';
       inspector.el.style.overflow = 'hidden';
@@ -247,7 +321,7 @@ export default Vue.extend({
       frozen: true,
       sorting: dia.Paper.sorting.APPROX,
       cellViewNamespace: shapes,
-      background: { color: '#F3F7F6' },
+      // background: { color: '#fffff' },
       magnetThreshold: 'onleave',
       moveThreshold: 5,
       clickThreshold: 5,
@@ -301,10 +375,8 @@ export default Vue.extend({
           return false;
         if (end === 'target') {
           const targetItemId = tv.findAttribute('item-id', tm);
-          console.log('tvModel.isItemInView(targetItemId) ===> ', tvModel.isItemInView(targetItemId))
           if (!tvModel.isItemInView(targetItemId))
             return false;
-          console.log('tvModel.getItemSide(targetItemId) =-=-=> ', tvModel.getItemSide(targetItemId))
           return (tvModel.getItemSide(targetItemId) !== 'right');
         }
         const sourceItemId = sv.findAttribute('item-id', sm);
@@ -316,9 +388,8 @@ export default Vue.extend({
     const scroller = new ui.PaperScroller({
       paper,
       cursor: 'grab',
-      // autoResizePaper: true,
-      baseWidth: 2000,
-      baseHeight: 2000,
+      baseWidth: 1000,
+      baseHeight: 1000,
       inertia: { friction: 0.8 },
       borderless: true
     });
@@ -333,6 +404,8 @@ export default Vue.extend({
         return true;
       }
     });
+
+    this.commandManager = commandManager
 
     const toolbar = new ui.Toolbar({
       autoToggle: true,
@@ -391,10 +464,11 @@ export default Vue.extend({
       inputShape,
       objectMapperShape,
       outputShape,
-      objectMapperValues
+      objectMapperToOutput,
+      inputToObjectMapper
     } = init(this.objectMapperSchema, this.inputJson)
 
-    loadExample(graph, { inputShape, objectMapperShape, outputShape }, { objectMapperValues })
+    loadExample(graph, { inputShape, objectMapperShape, outputShape }, { objectMapperToOutput, inputToObjectMapper })
 
     commandManager.listen();
 
@@ -414,20 +488,42 @@ export default Vue.extend({
       scroller.zoom(delta * 0.2, { min: 0.4, max: 3, grid: 0.2, ox: x, oy: y });
     }
 
-    paper.on('link:connect', (linkView) => {
+    paper.on('link:connect', (linkView, evt, elementViewConnected, magnet, arrowhead) => {
+      let sourceId = linkView.model.attributes.source.port
+      const itemId = elementViewConnected.findAttribute('item-id', magnet)
+      const element = elementViewConnected.model;
+      sourceId = _replaceAll(sourceId, "[0]", "[*]")
+      evt.stopPropagation();
 
-      // this.showLinkTools(linkView);
+      const updateData = {
+        _path: sourceId
+      }
+
+      this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'connect' })
     });
-    paper.on('link:pointerclick', (linkView) => {
 
-      // this.showLinkTools(linkView);
+    paper.on('link:disconnect', (linkView, evt, elementViewDisconnected, magnet, arrowhead) => {
+      const sourceId = linkView.model.attributes.source.port
+      const itemId = elementViewDisconnected.findAttribute('item-id', magnet)
+      const element = elementViewDisconnected.model;
+
+      const updateData = {
+        _path: ''
+      }
+
+      this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'disconnect' })
     });
-    paper.on('link:disconnect', (linkView) => {
-
+    paper.on('link:pointerclick', (linkView, evt, elementView, magnet, arrowhead) => {
       // this.showLinkTools(linkView);
     });
     paper.on('link:mouseenter', (linkView) => {
-
+      if (
+          (linkView.model.attributes.source.id === records.ObjectMapper.id)
+          &&
+          (linkView.model.attributes.target.id === records.OutputTransformer.id)
+      ) {
+        return
+      }
       this.showLinkTools(linkView);
     });
 
@@ -436,6 +532,9 @@ export default Vue.extend({
     });
 
     paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
+      if (elementView.model.id === records.OutputTransformer.id) {
+        return
+      }
       evt.stopPropagation();
       const model = elementView.model;
       this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
@@ -499,7 +598,8 @@ export default Vue.extend({
       const record = recordView.model;
       this.itemDecoratorEditAction(record, itemId);
     });
-
+    const isFrozen = paper.isFrozen()
+    console.log('isFrozen ? => ', isFrozen)
     paper.unfreeze();
     this.scroller = scroller
     this.paper = paper
@@ -522,8 +622,8 @@ export default Vue.extend({
 @import '../dataMappingLogic/styles.scss';
 
 .canvas {
-  width: 100%;
-  height: 100%;
+  width: 1800px;
+  height: 1000px;
 
   .joint-paper {
     border: 1px solid #A0A0A0;

@@ -1,35 +1,47 @@
 import { Link, Record } from './shapes'
-import init from './init'
 
-// const { inputShape, objectMapperShape, outputShape, objectMapperValues } = init()
+// const { inputShape, objectMapperShape, outputShape, objectMapperToOutput } = init()
 
-const records_ids = {
+const records = {
     inputTransformer: null,
     ObjectMapper: null,
     outputTransformer: null
 }
 
+const createLinks = (sourceShape, targetShape, source2TargetInstance) => {
+    const links = []
+    source2TargetInstance.map(link => {
+        links.push(
+            new Link({
+                source: { id: sourceShape.id, port: link.source },
+                target: { id: targetShape.id, port: link.target },
+            }),
+        )
+    })
+    return links
+}
+
 const loadExample = function (graph, shapes, options) {
 
-    const inputTransformer = new Record({
+    const InputTransformer = new Record({
         items: [
             shapes.inputShape,
         ],
-    }).setName('inputJson')
+    }).setName('input JSON')
         .position(100, 200)
         .addTo(graph)
 
 
     const ObjectMapper = new Record({
-        items: [[
+        items: [
             shapes.objectMapperShape,
-        ]],
+        ],
     })
-        .setName('ObjectMapperSchema')
+        .setName('Mapping Schema')
         .position(400, 100)
         .addTo(graph)
 
-    const outputTransformer = new Record({
+    const OutputTransformer = new Record({
         decorators: {
             user_email: 'fx1()',
             address_street: 'fx2()',
@@ -38,37 +50,24 @@ const loadExample = function (graph, shapes, options) {
             shapes.outputShape,
         ],
     })
-        .setName('outputShape')
+        .setName('output JSON')
         .position(750, 200)
         .addTo(graph)
 
-    // records_ids.inputTransformer = inputTransformer.id
-    // records_ids.ObjectMapper = ObjectMapper.id
-    // records_ids.outputTransformer = outputTransformer.id
+    records.InputTransformer = InputTransformer
+    records.ObjectMapper = ObjectMapper
+    records.OutputTransformer = OutputTransformer
+    records.list = [InputTransformer, ObjectMapper, OutputTransformer]
 
-    const createLinks = () => {
-        const links = []
-        options.objectMapperValues.forEach(id => {
-            const targetId = id.replace('data.', '')
-            console.log(inputTransformer)
-
-            links.push(
-                new Link({
-                    source: { id: ObjectMapper.id, port: id },
-                    target: { id: outputTransformer.id, port: targetId },
-                }),
-            )
-        })
-        return links
-    }
-    const links = createLinks()
-
-
+    // createInputLinks(links)
+    let links = createLinks(InputTransformer, ObjectMapper, options.inputToObjectMapper)
+    links = links.concat(createLinks(ObjectMapper, OutputTransformer, options.objectMapperToOutput))
+    // Array.prototype.push.apply(links, createOutputLinks())
     links.forEach(function (link) {
         link.addTo(graph)
     })
 }
 export {
     loadExample,
-    records_ids
+    records
 }
