@@ -9,12 +9,17 @@ function getObjectFromArray(data) {
 }
 
 const createKeyValueString = (key, value) => {
+    if (!key) return
+    if (!value) return
     if (!['Array', 'Object'].includes(value.constructor.name))
         return `${key}: ${value.toString()}`
     else if (value.constructor.name === 'Object')
         return `${key}: Object`
     else if (value.constructor.name === 'Array')
         return `${key}: Array`
+    else {
+        debugger
+    }
 }
 
 export function objectMapperSchema2Shape(schema, label = 'data', path = '') {
@@ -124,6 +129,7 @@ const transformJSONShape = (obj, path = '') => {
             const _key = isArray ? `[${key}]` : key
 
             const label = createKeyValueString(key, obj[key])
+            // const label =' createKeyValueString(key, obj[key])'
 
             const items = transformJSONShape(obj[key], path + _key + '.')
 

@@ -37,7 +37,6 @@ export default Vue.extend({
     graph: dia.Graph,
     paper: dia.Paper,
     scroller: ui.PaperScroller,
-    toolbar: ui.Toolbar,
     toolbarHeight: 50,
     commandManager: dia.CommandManager
   }),
@@ -407,33 +406,7 @@ export default Vue.extend({
 
     this.commandManager = commandManager
 
-    const toolbar = new ui.Toolbar({
-      autoToggle: true,
-      tools: [
-        { type: 'undo' },
-        { type: 'redo' },
-        { type: 'zoomToFit' },
-        { type: 'button', name: 'svg', text: 'Export SVG' }
-      ],
-      references: {
-        commandManager: commandManager,
-        paperScroller: scroller
-      }
-    });
-    toolbar.on('svg:pointerclick', () => {
-      paper.toSVG((svg) => {
-        new ui.Lightbox({
-          image: 'data:image/svg+xml,' + encodeURIComponent(svg),
-          downloadable: true,
-          fileName: 'DataMapping'
-        }).open();
-      }, {
-        preserveDimensions: true,
-        convertImagesToDataUris: true,
-        useComputedStyles: false
-      });
-    });
-    toolbar.render();
+
 
     // Scrollbars
     graph.on('add', (cell) => {
@@ -603,13 +576,10 @@ export default Vue.extend({
     paper.unfreeze();
     this.scroller = scroller
     this.paper = paper
-    this.toolbar = toolbar
   },
   mounted() {
-    const { scroller, paper, toolbar, $refs: { canvas } } = this;
+    const { scroller, paper, $refs: { canvas } } = this;
     canvas.appendChild(this.scroller.el);
-    canvas.appendChild(this.toolbar.el);
-    toolbar.el.style.height = this.toolbarHeight + 'px';
 
     scroller.center();
     paper.unfreeze();
