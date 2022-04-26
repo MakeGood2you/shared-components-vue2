@@ -1,6 +1,6 @@
 {
   "name": "@OtailO-recommerce/shared-components-vue2",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "",
   "main": "dist/shared-components-vue2.ssr.js",
   "browser": "dist/shared-components-vue2.esm.js",
