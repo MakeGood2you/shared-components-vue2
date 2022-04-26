@@ -314,8 +314,8 @@ export default Vue.extend({
     const graph = this.graph = new dia.Graph({}, { cellNamespace: shapes });
     const paper = new dia.Paper({
       model: graph,
-      width: 1000,
-      height: 550,
+      width: 1200,
+      height: 800,
       gridSize: 10,
       async: true,
       frozen: true,
@@ -622,8 +622,8 @@ export default Vue.extend({
 @import '../dataMappingLogic/styles.scss';
 
 .canvas {
-  width: 1800px;
-  height: 1000px;
+  width: 100vw;
+  height: 100vh;
 
   .joint-paper {
     border: 1px solid #A0A0A0;
