@@ -199,7 +199,8 @@ export default Vue.extend({
     linkEditAction(element, itemId, updateData, options) {
 
       const { linkView, evt, magnet, arrowhead, eventName } = options
-
+      const objectMapperRecord = records.ObjectMapper
+      const objectMapperItemPath = objectMapperRecord.getItemPathArray(itemId)
       const path = element.getItemPathArray(itemId)
       debugger
       this.editRecord(element, itemId, path, updateData, eventName)
@@ -250,7 +251,7 @@ export default Vue.extend({
             // const input = Shape2JSON(element.attributes.items[0][0])
             // const whoChanged = this.findRecord(element.id)
             this.$emit('mapObject', {
-              schema:schema.data,
+              schema: schema.data,
               input: this.inputJson,
             })
 
@@ -261,13 +262,22 @@ export default Vue.extend({
           }.bind(this)
         });
       } else {
-        element.item(itemId, updateData)// change the shape
+        updateData = this.updateProperty(updateData, item)
+        debugger
+        element.item(itemId, updateData) // change the shape
       }
 
       // const path = record.getItemPathArray(itemId);
       // const path = util.setByPath({ _path: 'TEST' }, itemPath)
     },
-
+    updateProperty(obj, item) {
+      for (const key in obj) {
+        if (!obj[key]) {
+          delete item[key]
+        }
+      }
+      return item
+    },
     itemDecoratorEditAction(element, itemId) {
       const config = { [itemId]: { type: 'content-editable', label: 'Decorator' } };
       const path = ['decorators'];
@@ -500,7 +510,7 @@ export default Vue.extend({
         evt.stopPropagation();
 
         const updateData = {
-          _path: sourceId
+          _path: '.' + sourceId
         }
 
         this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'connect' })
@@ -640,7 +650,7 @@ export default Vue.extend({
       const schema = objectMapperSchemaShape2Schema(records.ObjectMapper.attributes.items[0][0])
 
       this.$emit('mapObject', {
-        schema:schema.data,
+        schema: schema.data,
         input: newData,
       })
     },
