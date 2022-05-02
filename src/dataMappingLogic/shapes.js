@@ -353,7 +353,7 @@ export class GetDate extends shapes.standard.HeaderedRecord {
 }
 
 export class Record extends shapes.standard.HeaderedRecord {
-    defaults() {
+    defaults(items) {
         return util.defaultsDeep({
             type: 'mapping.Record',
             itemHeight: 20,
@@ -426,7 +426,7 @@ export class Record extends shapes.standard.HeaderedRecord {
                     magnet: null,
                     fill: '#AAAAAA',
                     cursor: 'not-allowed'
-                }
+                },
             }
         }, super.defaults);
     }
@@ -525,6 +525,7 @@ export class Record extends shapes.standard.HeaderedRecord {
             }
         };
     }
+
     getJSONInspectorConfig() {
         return {
             label: {
@@ -555,7 +556,58 @@ export class Record extends shapes.standard.HeaderedRecord {
             }
         };
     }
+
+    isDeepMatchItemExist(item, newItem) {
+
+        if (item.items && !newItem.items) {
+            this.removeItem(item.items[0].id)
+        }
+        if (item.items && newItem.items) {
+            this.isDeepMatchItemExist(item.items[0], newItem.items[0])
+            return {
+                isExist: true,
+                item
+            }
+        }
+        // if (item.items && newItem.items) {
+        //     return false
+        // }
+        return false
+
+    }
+
+    recordUpdate(itemsIds, newItems) {
+        let tempItem = this.getDefaultItem()
+        this.addPrevSibling(itemsIds[0].id, tempItem)
+
+        itemsIds.forEach((item) => {
+            this.removeItem(item.id)
+        })
+        newItems.forEach((newItem) => {
+            this.addPrevSibling(tempItem.id, newItem)
+        })
+        this.removeItem(tempItem.id)
+
+        const isItemVisible = this.isItemVisible(itemsIds[0].id)
+    }
 }
+
+//     recordUpdate(itemsIds, newItems) {
+//         itemsIds.forEach((item) => {
+//             const newItem = newItems.find(newItem => newItem.id === item.id)
+//             if (newItem) {
+//                 if (item.items && !newItem.items) {
+//                     this.removeItem(item.items[0].id)
+//                 }
+//                 this.item(item.id, newItem)
+//             } else {
+//                 this.removeItem(item.id)
+//                 debugger
+//             }
+//         })
+//         const isItemVisible = this.isItemVisible(itemsIds[0].id)
+//     }
+// }
 
 function warning(text) {
     return '<span style="color:#fe854f">' + text + '</span>';

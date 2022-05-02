@@ -1,16 +1,16 @@
 import { ObjectMapper } from './ObjectMapperLogic'
 import { _replaceAll } from '../utils/strings'
 
-function getObjectFromArray(data) {
+export function getObjectFromDeepArray(data) {
     if (!Array.isArray(data)) {
         return data
     }
-    return getObjectFromArray(data[0])
+    return getObjectFromDeepArray(data[0])
 }
 
-const createKeyValueString = (key, value) => {
-    if (!key) return
-    if (!value) return
+export const createKeyValueString = (key, value) => {
+    if (!key) key = 'none'
+    if (!value) value = ''
     if (!['Array', 'Object'].includes(value.constructor.name))
         return `${key}: ${value.toString()}`
     else if (value.constructor.name === 'Object')
@@ -98,7 +98,7 @@ export function objectMapperSchemaShape2Schema(shape) {
                         (previousValue, currentValue) => {
                             return Object.assign(previousValue, currentValue)
                         }, { ...shape.elementAttributes }),
-                    
+
                     _path: shape._path,
                     _default: shape._default,
                     _type: shape._type
@@ -120,7 +120,7 @@ export function objectMapperSchemaShape2Schema(shape) {
 
 }
 
-const transformJSONShape = (obj, path = '') => {
+export const transformJSONShape = (obj, path = '') => {
     if (obj && typeof obj === 'object') {
         const isArray = Array.isArray(obj)
 
@@ -147,7 +147,7 @@ const transformJSONShape = (obj, path = '') => {
     }
 }
 
-function getValuesFromShape(shape, keySearch = 'id', values = []) {
+export function getValuesFromShape(shape, keySearch = 'id', values = []) {
     Object.keys(shape).map((key, index) => {
             if (typeof keySearch === 'string' && key === keySearch) {
                 values.push(shape[key])
@@ -172,7 +172,7 @@ function getValuesFromShape(shape, keySearch = 'id', values = []) {
     return values
 }
 
-function createObjectMapper2OutputInstance(objectMapperShape) {
+export function createObjectMapper2OutputInstance(objectMapperShape) {
     const objectMapperIds = getValuesFromShape(objectMapperShape)
 
     const result = []
@@ -187,7 +187,7 @@ function createObjectMapper2OutputInstance(objectMapperShape) {
     return result
 }
 
-function createInput2ObjectMapperInstance(objectMapperShape) {
+export function createInput2ObjectMapperInstance(objectMapperShape) {
     const objectMapperIds = getValuesFromShape(objectMapperShape, ['_absPath'])
     const result = []
     objectMapperIds.map((link) => {
@@ -203,21 +203,20 @@ function createInput2ObjectMapperInstance(objectMapperShape) {
     return result
 }
 
-function init(schema, inputJson) {
-    const objectMapperTransformer = new ObjectMapper(schema)
+function init(schema, inputJson, outputJson) {
+    // for Demo
+    // const objectMapperTransformer = new ObjectMapper(schema)
+    // objectMapperTransformer.compile()
+    // outputJson = objectMapperTransformer.mapObject({ data: inputJson })
 
-    objectMapperTransformer.compile()
-    const outputJson = objectMapperTransformer.mapObject({ data: inputJson })
-
-    const objectMapperShape = [objectMapperSchema2Shape(objectMapperTransformer.schema)]
-    
+    const objectMapperShape = [objectMapperSchema2Shape(schema)]
     const inputShape = transformJSONShape(inputJson)
     const outputShape = transformJSONShape(outputJson)
 
-
     const objectMapperToOutput = createObjectMapper2OutputInstance(objectMapperShape)
     const inputToObjectMapper = createInput2ObjectMapperInstance(objectMapperShape)
-
+    console.log('objectMapperToOutput ===> :', objectMapperToOutput)
+    console.log('inputToObjectMapper ===> :', inputToObjectMapper)
     // console.log(objectMapperTransformer)
     // const shapeValues = getValuesFromShape(outputShape)
     // const inputValues = getValuesFromShape(inputShape)

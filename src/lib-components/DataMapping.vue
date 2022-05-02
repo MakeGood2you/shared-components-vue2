@@ -12,7 +12,14 @@ import { routerNamespace } from '../dataMappingLogic/routers';
 import { anchorNamespace } from '../dataMappingLogic/anchors';
 import { loadExample, records } from '../dataMappingLogic/example';
 import { _replaceAll } from '../utils/strings';
-import init from '../dataMappingLogic/init'
+import init, {
+  objectMapperSchemaShape2Schema,
+  objectMapperSchema2Shape,
+  transformJSONShape,
+  createObjectMapper2OutputInstance,
+  createInput2ObjectMapperInstance
+} from '../dataMappingLogic/init'
+
 
 import Vue from 'vue';
 
@@ -24,15 +31,27 @@ export default Vue.extend({
       type: Object,
       required: true,
     },
+
     inputJson: {
       type: Object,
       required: true
-    }
+    },
+
+    outputJson: {
+      type: Object,
+      required: true
+    },
+
   },
 
   data: () => ({
     $refs: {
       canvas: HTMLDivElement
+    },
+    flag: {
+      input: false,
+      schema: false,
+      output: false,
     },
     graph: dia.Graph,
     paper: dia.Paper,
@@ -182,12 +201,15 @@ export default Vue.extend({
       const { linkView, evt, magnet, arrowhead, eventName } = options
 
       const path = element.getItemPathArray(itemId)
+      debugger
       this.editRecord(element, itemId, path, updateData, eventName)
+    },
+    findRecord(id) {
+      return records.list.findIndex(record => record.id === id)
     },
 
     editRecord(element, itemId, path, updateData, eventName) {
       if (!itemId) return;
-
       let items = element.attributes.items
       const item = this.getItemByPath(items, path)
 
@@ -222,14 +244,24 @@ export default Vue.extend({
             dialog.close();
           }.bind(this),
           'action:confirm': function () {
-            element.item(itemId, updateData)
+            element.item(itemId, updateData) // change the shape
+
+            const schema = objectMapperSchemaShape2Schema(element.attributes.items[0][0])
+            // const input = Shape2JSON(element.attributes.items[0][0])
+            // const whoChanged = this.findRecord(element.id)
+            this.$emit('mapObject', {
+              schema:schema.data,
+              input: this.inputJson,
+            })
+
+            debugger
+
             inspector.remove();
             dialog.close();
           }.bind(this)
         });
       } else {
-
-        element.item(itemId, updateData)
+        element.item(itemId, updateData)// change the shape
       }
 
       // const path = record.getItemPathArray(itemId);
@@ -290,6 +322,7 @@ export default Vue.extend({
           dialog.close();
         },
         'action:change': function () {
+          debugger
           inspector.updateCell();
           inspector.remove();
           dialog.close();
@@ -304,290 +337,344 @@ export default Vue.extend({
         selection.removeAllRanges();
         selection.addRange(range);
       }
-    }
+    },
 
-  },
-  created() {
-    setTheme('material');
+    start(objectMapperSchema, inputJson, outputJson) {
+      setTheme('material');
 
-    const graph = this.graph = new dia.Graph({}, { cellNamespace: shapes });
-    const paper = new dia.Paper({
-      model: graph,
-      width: 1200,
-      height: 800,
-      gridSize: 10,
-      async: true,
-      frozen: true,
-      sorting: dia.Paper.sorting.APPROX,
-      cellViewNamespace: shapes,
-      // background: { color: '#fffff' },
-      magnetThreshold: 'onleave',
-      moveThreshold: 5,
-      clickThreshold: 5,
-      linkPinning: false,
-      interactive: {
-        linkMove: false,
-        elementMove: false
-      },
-      markAvailable: true,
-      snapLinks: { radius: 40 },
-      routerNamespace: routerNamespace,
-      defaultRouter: {
-        name: 'mapping',
-        args: { padding: 30 }
-      },
-      defaultConnectionPoint: { name: 'anchor' },
-      anchorNamespace: anchorNamespace,
-      defaultAnchor: { name: 'mapping' },
-      defaultConnector: {
-        name: 'jumpover',
-        args: { jump: 'cubic' }
-      },
-      highlighting: {
-        magnetAvailability: {
-          name: 'addClass',
-          options: {
-            className: 'record-item-available'
-          }
+      const graph = this.graph = new dia.Graph({}, { cellNamespace: shapes });
+      const paper = new dia.Paper({
+        model: graph,
+        width: 1200,
+        height: 800,
+        gridSize: 10,
+        async: true,
+        frozen: true,
+        sorting: dia.Paper.sorting.APPROX,
+        cellViewNamespace: shapes,
+        // background: { color: '#fffff' },
+        magnetThreshold: 'onleave',
+        moveThreshold: 5,
+        clickThreshold: 5,
+        linkPinning: false,
+        interactive: {
+          linkMove: false,
+          elementMove: false
         },
-        connecting: {
-          name: 'stroke',
-          options: {
-            padding: 8,
-            attrs: {
-              'stroke': 'none',
-              'fill': '#7c68fc',
-              'fill-opacity': 0.2
+        markAvailable: true,
+        snapLinks: { radius: 40 },
+        routerNamespace: routerNamespace,
+        defaultRouter: {
+          name: 'mapping',
+          args: { padding: 30 }
+        },
+        defaultConnectionPoint: { name: 'anchor' },
+        anchorNamespace: anchorNamespace,
+        defaultAnchor: { name: 'mapping' },
+        defaultConnector: {
+          name: 'jumpover',
+          args: { jump: 'cubic' }
+        },
+        highlighting: {
+          magnetAvailability: {
+            name: 'addClass',
+            options: {
+              className: 'record-item-available'
+            }
+          },
+          connecting: {
+            name: 'stroke',
+            options: {
+              padding: 8,
+              attrs: {
+                'stroke': 'none',
+                'fill': '#7c68fc',
+                'fill-opacity': 0.2
+              }
             }
           }
-        }
-      },
-      defaultLink: function () {
-        return new Link();
-      },
-      validateConnection: function (sv, sm, tv, tm, end) {
-        const svModel = sv.model;
-        const tvModel = tv.model;
-        if (sv === tv)
-          return false;
-        if (svModel.isLink() || tvModel.isLink())
-          return false;
-        if (end === 'target') {
-          const targetItemId = tv.findAttribute('item-id', tm);
-          if (!tvModel.isItemInView(targetItemId))
+        },
+        defaultLink: function () {
+          return new Link();
+        },
+        validateConnection: function (sv, sm, tv, tm, end) {
+          const svModel = sv.model;
+          const tvModel = tv.model;
+          if (sv === tv)
             return false;
-          return (tvModel.getItemSide(targetItemId) !== 'right');
+          if (svModel.isLink() || tvModel.isLink())
+            return false;
+          if (end === 'target') {
+            const targetItemId = tv.findAttribute('item-id', tm);
+            if (!tvModel.isItemInView(targetItemId))
+              return false;
+            return (tvModel.getItemSide(targetItemId) !== 'right');
+          }
+          const sourceItemId = sv.findAttribute('item-id', sm);
+          if (!svModel.isItemInView(sourceItemId))
+            return false;
+          return (svModel.getItemSide(sourceItemId) !== 'left');
         }
-        const sourceItemId = sv.findAttribute('item-id', sm);
-        if (!svModel.isItemInView(sourceItemId))
-          return false;
-        return (svModel.getItemSide(sourceItemId) !== 'left');
-      }
-    });
-    const scroller = new ui.PaperScroller({
-      paper,
-      cursor: 'grab',
-      baseWidth: 1000,
-      baseHeight: 1000,
-      inertia: { friction: 0.8 },
-      borderless: true
-    });
-
-    scroller.render()
-    // Undo / Redo
-    const commandManager = new dia.CommandManager({
-      graph: graph,
-      cmdBeforeAdd: function (eventName) {
-        if (eventName === 'change:scrollTop')
-          return false;
-        return true;
-      }
-    });
-
-    this.commandManager = commandManager
-
-
-
-    // Scrollbars
-    graph.on('add', (cell) => {
-      if (cell.get('type') === 'mapping.Record') {
-        cell.findView(paper).addTools(new dia.ToolsView({
-          tools: [new elementTools.RecordScrollbar({})]
-        }));
-      }
-    });
-    // Decorators
-    graph.on('add change:decorators', (cell) => {
-      const decorators = cell.get('decorators');
-      if (!util.isPlainObject(decorators))
-        return;
-      const view = cell.findView(paper);
-      Decorator.remove(view);
-      Object.keys(decorators).forEach(itemId => {
-        const text = decorators[itemId];
-        if (!text || !cell.item(itemId))
-          return;
-        Decorator.create(view, itemId, { text });
       });
-    });
+      const scroller = new ui.PaperScroller({
+        paper,
+        cursor: 'grab',
+        baseWidth: 1000,
+        baseHeight: 1000,
+        inertia: { friction: 0.8 },
+        borderless: true
+      });
 
-    commandManager.stopListening();
+      scroller.render()
+      // Undo / Redo
+      const commandManager = new dia.CommandManager({
+        graph: graph,
+        cmdBeforeAdd: function (eventName) {
+          if (eventName === 'change:scrollTop')
+            return false;
+          return true;
+        }
+      });
 
-    const {
-      inputShape,
-      objectMapperShape,
-      outputShape,
-      objectMapperToOutput,
-      inputToObjectMapper
-    } = init(this.objectMapperSchema, this.inputJson)
+      this.commandManager = commandManager
 
-    loadExample(graph, { inputShape, objectMapperShape, outputShape }, { objectMapperToOutput, inputToObjectMapper })
 
-    commandManager.listen();
+      // Scrollbars
+      graph.on('add', (cell) => {
+        if (cell.get('type') === 'mapping.Record') {
+          cell.findView(paper).addTools(new dia.ToolsView({
+            tools: [new elementTools.RecordScrollbar({})]
+          }));
+        }
+      });
+      // Decorators
+      graph.on('add change:decorators', (cell) => {
+        const decorators = cell.get('decorators');
+        if (!util.isPlainObject(decorators))
+          return;
+        const view = cell.findView(paper);
+        Decorator.remove(view);
+        Object.keys(decorators).forEach(itemId => {
+          const text = decorators[itemId];
+          if (!text || !cell.item(itemId))
+            return;
+          Decorator.create(view, itemId, { text });
+        });
+      });
 
-    paper.on('blank:pointerdown', (evt) => scroller.startPanning(evt));
+      commandManager.stopListening();
 
-    paper.on('blank:mousewheel', (evt, ox, oy, delta) => {
-      evt.preventDefault();
-      zoom(ox, oy, delta);
-    });
+      const {
+        inputShape,
+        objectMapperShape,
+        outputShape,
+        objectMapperToOutput,
+        inputToObjectMapper
+      } = init(objectMapperSchema, inputJson, outputJson)
 
-    paper.on('link:mousewheel', (_, evt, ox, oy, delta) => {
-      evt.preventDefault();
-      zoom(ox, oy, delta);
-    });
+      loadExample(graph, { inputShape, objectMapperShape, outputShape }, { objectMapperToOutput, inputToObjectMapper })
 
-    function zoom(x, y, delta) {
-      scroller.zoom(delta * 0.2, { min: 0.4, max: 3, grid: 0.2, ox: x, oy: y });
+      commandManager.listen();
+
+      paper.on('blank:pointerdown', (evt) => scroller.startPanning(evt));
+
+      paper.on('blank:mousewheel', (evt, ox, oy, delta) => {
+        evt.preventDefault();
+        zoom(ox, oy, delta);
+      });
+
+      paper.on('link:mousewheel', (_, evt, ox, oy, delta) => {
+        evt.preventDefault();
+        zoom(ox, oy, delta);
+      });
+
+      function zoom(x, y, delta) {
+        scroller.zoom(delta * 0.2, { min: 0.4, max: 3, grid: 0.2, ox: x, oy: y });
+      }
+
+      paper.on('link:connect', (linkView, evt, elementViewConnected, magnet, arrowhead) => {
+        let sourceId = linkView.model.attributes.source.port
+        const itemId = elementViewConnected.findAttribute('item-id', magnet)
+        const element = elementViewConnected.model;
+        sourceId = _replaceAll(sourceId, "[0]", "[*]")
+        evt.stopPropagation();
+
+        const updateData = {
+          _path: sourceId
+        }
+
+        this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'connect' })
+      });
+
+      paper.on('link:disconnect', (linkView, evt, elementViewDisconnected, magnet, arrowhead) => {
+        const sourceId = linkView.model.attributes.source.port
+        const itemId = elementViewDisconnected.findAttribute('item-id', magnet)
+        const element = elementViewDisconnected.model;
+
+        const updateData = {
+          _path: ''
+        }
+
+        this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'disconnect' })
+      });
+
+      paper.on('link:pointerclick', (linkView, evt, elementView, magnet, arrowhead) => {
+        // this.showLinkTools(linkView);
+      });
+
+      paper.on('link:mouseenter', (linkView) => {
+        if (
+            (linkView.model.attributes.source.id === records.ObjectMapper.id)
+            &&
+            (linkView.model.attributes.target.id === records.OutputTransformer.id)
+        ) {
+          return
+        }
+        this.showLinkTools(linkView);
+      });
+
+      paper.on('link:mouseleave', (linkView) => {
+        linkView.removeTools();
+      });
+
+      paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
+        if (elementView.model.id === records.OutputTransformer.id) {
+          return
+        }
+        evt.stopPropagation();
+        const model = elementView.model;
+        this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
+      });
+
+      paper.on('element:contextmenu', (elementView, evt) => {
+        const model = elementView.model;
+        const tools = model.getTools();
+        if (tools) {
+          evt.stopPropagation();
+          this.elementActionPicker(elementView.el, elementView, tools);
+        }
+      });
+
+      paper.on('element:magnet:contextmenu', (elementView, evt, magnet) => {
+        const model = elementView.model;
+        const itemId = elementView.findAttribute('item-id', magnet);
+        const tools = model.getItemTools(itemId);
+        if (tools) {
+          evt.stopPropagation();
+          this.itemActionPicker(magnet, elementView, elementView.findAttribute('item-id', magnet), tools);
+        }
+      });
+
+      paper.on('element:pointerclick', (elementView) => {
+        this.showElementTools(elementView);
+      });
+
+      paper.on('element:pointermove', function (view, evt, x, y) {
+        const data = evt.data;
+        let ghost = data.ghost;
+        if (!ghost) {
+          const position = view.model.position();
+          ghost = view.vel.clone();
+          ghost.attr('opacity', 0.3);
+          ghost.appendTo(this.viewport);
+          evt.data.ghost = ghost;
+          evt.data.dx = x - position.x;
+          evt.data.dy = y - position.y;
+        }
+        ghost.attr('transform', 'translate(' + [x - data.dx, y - data.dy] + ')');
+      });
+
+      paper.on('element:pointerup', (view, evt, x, y) => {
+        const data = evt.data;
+        if (data.ghost) {
+          data.ghost.remove();
+          view.model.position(x - data.dx, y - data.dy);
+        }
+      });
+
+      paper.on('element:mousewheel', (recordView, evt, x, y, delta) => {
+        evt.preventDefault();
+        const record = recordView.model;
+        if (!record.isEveryItemInView()) {
+          record.setScrollTop(record.getScrollTop() + delta * 10);
+        }
+      });
+
+      paper.on('element:decorator:pointerdown', (recordView, evt, itemId) => {
+        const record = recordView.model;
+        this.itemDecoratorEditAction(record, itemId);
+      });
+      // const isFrozen = paper.isFrozen()
+      paper.unfreeze();
+
+      this.scroller = scroller
+      this.paper = paper
     }
-
-    paper.on('link:connect', (linkView, evt, elementViewConnected, magnet, arrowhead) => {
-      let sourceId = linkView.model.attributes.source.port
-      const itemId = elementViewConnected.findAttribute('item-id', magnet)
-      const element = elementViewConnected.model;
-      sourceId = _replaceAll(sourceId, "[0]", "[*]")
-      evt.stopPropagation();
-
-      const updateData = {
-        _path: sourceId
-      }
-
-      this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'connect' })
-    });
-
-    paper.on('link:disconnect', (linkView, evt, elementViewDisconnected, magnet, arrowhead) => {
-      const sourceId = linkView.model.attributes.source.port
-      const itemId = elementViewDisconnected.findAttribute('item-id', magnet)
-      const element = elementViewDisconnected.model;
-
-      const updateData = {
-        _path: ''
-      }
-
-      this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'disconnect' })
-    });
-    paper.on('link:pointerclick', (linkView, evt, elementView, magnet, arrowhead) => {
-      // this.showLinkTools(linkView);
-    });
-    paper.on('link:mouseenter', (linkView) => {
-      if (
-          (linkView.model.attributes.source.id === records.ObjectMapper.id)
-          &&
-          (linkView.model.attributes.target.id === records.OutputTransformer.id)
-      ) {
-        return
-      }
-      this.showLinkTools(linkView);
-    });
-
-    paper.on('link:mouseleave', (linkView) => {
-      linkView.removeTools();
-    });
-
-    paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
-      if (elementView.model.id === records.OutputTransformer.id) {
-        return
-      }
-      evt.stopPropagation();
-      const model = elementView.model;
-      this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
-    });
-
-    paper.on('element:contextmenu', (elementView, evt) => {
-      const model = elementView.model;
-      const tools = model.getTools();
-      if (tools) {
-        evt.stopPropagation();
-        this.elementActionPicker(elementView.el, elementView, tools);
-      }
-    });
-
-    paper.on('element:magnet:contextmenu', (elementView, evt, magnet) => {
-      const model = elementView.model;
-      const itemId = elementView.findAttribute('item-id', magnet);
-      const tools = model.getItemTools(itemId);
-      if (tools) {
-        evt.stopPropagation();
-        this.itemActionPicker(magnet, elementView, elementView.findAttribute('item-id', magnet), tools);
-      }
-    });
-
-    paper.on('element:pointerclick', (elementView) => {
-      this.showElementTools(elementView);
-    });
-
-    paper.on('element:pointermove', function (view, evt, x, y) {
-      const data = evt.data;
-      let ghost = data.ghost;
-      if (!ghost) {
-        const position = view.model.position();
-        ghost = view.vel.clone();
-        ghost.attr('opacity', 0.3);
-        ghost.appendTo(this.viewport);
-        evt.data.ghost = ghost;
-        evt.data.dx = x - position.x;
-        evt.data.dy = y - position.y;
-      }
-      ghost.attr('transform', 'translate(' + [x - data.dx, y - data.dy] + ')');
-    });
-
-    paper.on('element:pointerup', (view, evt, x, y) => {
-      const data = evt.data;
-      if (data.ghost) {
-        data.ghost.remove();
-        view.model.position(x - data.dx, y - data.dy);
-      }
-    });
-
-    paper.on('element:mousewheel', (recordView, evt, x, y, delta) => {
-      evt.preventDefault();
-      const record = recordView.model;
-      if (!record.isEveryItemInView()) {
-        record.setScrollTop(record.getScrollTop() + delta * 10);
-      }
-    });
-
-    paper.on('element:decorator:pointerdown', (recordView, evt, itemId) => {
-      const record = recordView.model;
-      this.itemDecoratorEditAction(record, itemId);
-    });
-    const isFrozen = paper.isFrozen()
-    console.log('isFrozen ? => ', isFrozen)
-    paper.unfreeze();
-    this.scroller = scroller
-    this.paper = paper
   },
+
+  created() {
+    this.start(this.objectMapperSchema, this.inputJson, this.outputJson)
+  },
+
   mounted() {
     const { scroller, paper, $refs: { canvas } } = this;
     canvas.appendChild(this.scroller.el);
 
     scroller.center();
     paper.unfreeze();
-  }
+  },
+
+  watch: {
+    inputJson(newData, oldData) {
+      console.log(records)
+      console.log({ oldData, newData })
+      debugger
+
+      const inputRecord = records.InputTransformer
+
+      const newInputRecordItems = transformJSONShape(newData)
+      const oldInputRecordItems = inputRecord.attributes.items[0]
+
+      inputRecord.recordUpdate(oldInputRecordItems, newInputRecordItems)
+
+      const schema = objectMapperSchemaShape2Schema(records.ObjectMapper.attributes.items[0][0])
+
+      this.$emit('mapObject', {
+        schema:schema.data,
+        input: newData,
+      })
+    },
+
+    objectMapperSchema(newData, oldData) {
+      // console.log({ oldData, newData })
+      // debugger
+      //
+      // const objectMapperRecord = records.ObjectMapper
+      //
+      // const newObjectMapperRecordItems = objectMapperSchemaShape2Schema(newData)
+      // const oldObjectMapperRecordItems = objectMapperRecord.attributes.items[0]
+      // objectMapperRecord.recordUpdate(oldObjectMapperRecordItems, newObjectMapperRecordItems)
+
+    },
+
+    outputJson(newData, oldData) {
+
+      const outputRecord = records.OutputTransformer
+
+      const newOutputRecordItems = transformJSONShape(newData)
+      const oldOutputRecordItems = outputRecord.attributes.items[0]
+
+      outputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
+    },
+
+
+    immediate: true,
+    deep: true
+  },
 })
 </script>
 
-<style lang="scss" >
+<style lang="scss">
 @import "~@clientio/rappid/rappid.css";
 @import '../dataMappingLogic/styles.scss';
 
