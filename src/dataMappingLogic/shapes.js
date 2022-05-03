@@ -1,28 +1,5 @@
 import { shapes, util } from '@clientio/rappid';
 
-export class Link extends shapes.standard.Link {
-    defaults() {
-        return util.defaultsDeep({
-            type: 'mapping.Link',
-            z: -1,
-            attrs: {
-                line: {
-                    targetMarker: {
-                        'type': 'path',
-                        'd': 'M 10 -5 0 0 10 5 z'
-                    },
-                    sourceMarker: {
-                        'type': 'path',
-                        'd': 'M 0 -5 10 0 0 5 z'
-                    },
-                    stroke: '#7C90A6',
-                    strokeWidth: 1
-                }
-            }
-        }, super.defaults);
-    }
-}
-
 export class Constant extends shapes.standard.BorderedRecord {
     defaults() {
         return util.defaultsDeep({
@@ -352,7 +329,37 @@ export class GetDate extends shapes.standard.HeaderedRecord {
     }
 }
 
+export class Link extends shapes.standard.Link {
+    defaults() {
+        return util.defaultsDeep({
+            type: 'mapping.Link',
+            z: -1,
+            attrs: {
+                line: {
+                    targetMarker: {
+                        'type': 'path',
+                        'd': 'M 10 -5 0 0 10 5 z'
+                    },
+                    sourceMarker: {
+                        'type': 'path',
+                        'd': 'M 0 -5 10 0 0 5 z'
+                    },
+                    stroke: '#7C90A6',
+                    strokeWidth: 1
+                }
+            }
+        }, super.defaults);
+    }
+
+}
+
 export class Record extends shapes.standard.HeaderedRecord {
+
+    constructor(allowedTools, attributes) {
+        super(attributes);
+        this.allowedTools = allowedTools;
+    }
+
     defaults(items) {
         return util.defaultsDeep({
             type: 'mapping.Record',
@@ -470,7 +477,7 @@ export class Record extends shapes.standard.HeaderedRecord {
             { action: 'add-next-sibling', content: 'Add Next Sibling' },
             { action: 'add-prev-sibling', content: 'Add Prev Sibling' },
             { action: 'remove', content: warning('Remove Item') }
-        ];
+        ].filter(tool => this.allowedTools.includes(tool.action));
     }
 
     getTools() {
@@ -591,23 +598,6 @@ export class Record extends shapes.standard.HeaderedRecord {
         const isItemVisible = this.isItemVisible(itemsIds[0].id)
     }
 }
-
-//     recordUpdate(itemsIds, newItems) {
-//         itemsIds.forEach((item) => {
-//             const newItem = newItems.find(newItem => newItem.id === item.id)
-//             if (newItem) {
-//                 if (item.items && !newItem.items) {
-//                     this.removeItem(item.items[0].id)
-//                 }
-//                 this.item(item.id, newItem)
-//             } else {
-//                 this.removeItem(item.id)
-//                 debugger
-//             }
-//         })
-//         const isItemVisible = this.isItemVisible(itemsIds[0].id)
-//     }
-// }
 
 function warning(text) {
     return '<span style="color:#fe854f">' + text + '</span>';

@@ -23,7 +23,7 @@ const createLinks = (sourceShape, targetShape, source2TargetInstance) => {
 
 const loadExample = function (graph, shapes, options) {
 
-    const InputTransformer = new Record({
+    const InputRecord = new Record(['edit','add-next-sibling', 'add-prev-sibling','remove'],{
         items: [
             shapes.inputShape,
         ],
@@ -31,17 +31,16 @@ const loadExample = function (graph, shapes, options) {
         .position(100, 200)
         .addTo(graph)
 
-
-    const ObjectMapper = new Record({
+const a = new Record()
+    const ObjectMapperRecord = new Record(['edit','add-next-sibling', 'add-prev-sibling','remove'],{
         items: [
             shapes.objectMapperShape,
         ],
-    })
-        .setName('Mapping Schema')
+    }).setName('Mapping Schema')
         .position(400, 100)
         .addTo(graph)
 
-    const OutputTransformer = new Record({
+    const OutputRecord = new Record(['edit','add-next-sibling', 'add-prev-sibling','remove'],{
         decorators: {
             user_email: 'fx1()',
             address_street: 'fx2()',
@@ -54,14 +53,14 @@ const loadExample = function (graph, shapes, options) {
         .position(750, 200)
         .addTo(graph)
 
-    records.InputTransformer = InputTransformer
-    records.ObjectMapper = ObjectMapper
-    records.OutputTransformer = OutputTransformer
-    records.list = [InputTransformer, ObjectMapper, OutputTransformer]
+    records.InputRecord = InputRecord
+    records.ObjectMapperRecord = ObjectMapperRecord
+    records.outputRecord = OutputRecord
+    records.list = [InputRecord, ObjectMapperRecord, OutputRecord]
 
     // createInputLinks(links)
-    let links = createLinks(InputTransformer, ObjectMapper, options.inputToObjectMapper)
-    links = links.concat(createLinks(ObjectMapper, OutputTransformer, options.objectMapperToOutput))
+    let links = createLinks(InputRecord, ObjectMapperRecord, options.inputToObjectMapper)
+    links = links.concat(createLinks(ObjectMapperRecord, OutputRecord, options.objectMapperToOutput))
     // Array.prototype.push.apply(links, createOutputLinks())
     links.forEach(function (link) {
         link.addTo(graph)
