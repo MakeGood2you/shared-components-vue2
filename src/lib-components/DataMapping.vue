@@ -19,7 +19,8 @@ import init, {
   transformJSONShape,
   objectMapperSchema2Shape,
   createObjectMapper2OutputInstance,
-  createInput2ObjectMapperInstance
+  createInput2ObjectMapperInstance,
+  createLinks
 } from '../dataMappingLogic/init'
 
 
@@ -54,11 +55,7 @@ export default Vue.extend({
     $refs: {
       canvas: HTMLDivElement
     },
-    flag: {
-      input: false,
-      schema: false,
-      output: false,
-    },
+
     graph: dia.Graph,
     paper: dia.Paper,
     scroller: ui.PaperScroller,
@@ -66,7 +63,7 @@ export default Vue.extend({
     commandManager: dia.CommandManager
   }),
   methods: {
-    dialog(options) {
+    createDialog(options) {
       const _createButtons = (buttons) => {
         const result = []
         buttons.forEach(button => {
@@ -113,7 +110,7 @@ export default Vue.extend({
           new Button({
             distance: '25%',
             action: function () {
-              self.linkAction(this.model, linkView.targetView.model);
+              self.linkAction(this.model, linkView);
             }
           })
         ]
@@ -121,8 +118,9 @@ export default Vue.extend({
       linkView.addTools(tools);
     },
 
-    linkAction(link, targetView) {
-      const dialog = this.dialog({
+    linkAction(link, linkView) {
+
+      const dialog = this.createDialog({
         title: 'Confirmation',
         content: 'Are you sure you want to delete this link?',
         buttons: ['cancel', 'remove']
@@ -134,7 +132,7 @@ export default Vue.extend({
           //remove the target link
           link.remove();
           // remove the source link
-          this.getSourceLinkById(targetView, link.attributes.target.port).remove();
+          this.removeTargetLinkBySourcePort(records.outputRecord, link.attributes.target.port)
 
           this.editObjectMapperRecord(link.attributes.target.port)
 
@@ -145,14 +143,49 @@ export default Vue.extend({
         }
       })
     },
-    getSourceLinkById(element, id) {
+
+    getLinkBySourcePort(element, id) {
       const connectedLinks = this.graph.getConnectedLinks(element)
       return connectedLinks.find(link => link.attributes.source.port === id)
     },
 
-    getTargetLinkById(element, id) {
+    getLinkByTargetPort(element, id) {
       const connectedLinks = this.graph.getConnectedLinks(element)
       return connectedLinks.find(link => link.attributes.target.port === id)
+    },
+
+    // getTargetAndSourceLinks(element, id) {
+    //   const result = {}
+    //   const connectedLinks = this.graph.getConnectedLinks(element)
+    //   connectedLinks.forEach(link => {
+    //     if (link.attributes.target.port === id) result.target = link
+    //     if (link.attributes.source.port === id) result.source = link
+    //   })
+    //   return result
+    // },
+
+    removeLinks(links) {
+      return links.forEach(link => link.remove())
+    },
+
+    removeSourceLinkByTargetPort(sourceView, targetPort) {
+      // remove the source link
+      const sourceLink = this.getLinkByTargetPort(sourceView, targetPort)
+      if (sourceLink && sourceLink.isLink()) {
+        sourceLink.remove();
+      } else {
+        console.error('NOT valid Link || no link found')
+      }
+    },
+
+    removeTargetLinkBySourcePort(sourceView, sourcePort) {
+      // remove the target link
+      const targetLink = this.getLinkBySourcePort(sourceView, sourcePort)
+      if (targetLink && targetLink.isLink()) {
+        targetLink.remove();
+      } else {
+        console.error('NOT valid Link || no link found')
+      }
     },
 
     showElementTools(elementView) {
@@ -274,7 +307,7 @@ export default Vue.extend({
       inspector.el.style.position = 'relative';
       inspector.el.style.overflow = 'hidden';
 
-      const dialog = this.dialog({
+      const dialog = this.createDialog({
         width: 300,
         title: 'Edit Item',
         closeButton: false,
@@ -315,23 +348,29 @@ export default Vue.extend({
       return this.getItemByPath(items[path[0]], path)
     },
 
-    linkEditAction(element, itemId, updateData, options) {
-
-      const { linkView, evt, magnet, arrowhead, eventName } = options
-      const objectMapperRecord = records.ObjectMapperRecord
-      const objectMapperItemPath = objectMapperRecord.getItemPathArray(itemId)
-      const path = element.getItemPathArray(itemId)
-
-      this.editRecord(element, itemId, path, updateData, eventName)
-    },
+    // linkEditAction(element, itemId, updateData, options) {
+    //
+    //   const { linkView, evt, magnet, arrowhead, eventName } = options
+    //   const objectMapperRecord = records.ObjectMapperRecord
+    //   const objectMapperItemPath = objectMapperRecord.getItemPathArray(itemId)
+    //   const path = element.getItemPathArray(itemId)
+    //
+    //   this.editRecord(element, itemId, path, updateData, eventName)
+    // },
 
     findRecord(id) {
       return records.list.findIndex(record => record.id === id)
     },
-    editRecord(element, itemId, path, updateData, eventName) {
+    createLink(graph, link, sourceShape, targetShape) {
+      const newLink = new Link({
+        source: { id: sourceShape.id, port: link.source },
+        target: { id: targetShape.id, port: link.target },
+      })
+      newLink.addTo(graph)
+    },
+    editRecord(element, linkView, itemId, updateData, eventName) {
       if (!itemId) return;
-      let items = element.attributes.items
-      const item = this.getItemByPath(items, path)
+      const item = element.item(itemId)
 
       if (eventName === 'connect') {
         if (item._path) {
@@ -343,18 +382,12 @@ export default Vue.extend({
           inspector.el.style.position = 'relative';
           inspector.el.style.overflow = 'hidden';
 
-          const dialog = new ui.Dialog({
+          const dialog = this.createDialog({
             width: 300,
             title: 'Confirmation',
             closeButton: false,
             content: 'Are you sure you want to replace this ?',
-            buttons: [{
-              content: 'Cancel',
-              action: 'cancel'
-            }, {
-              content: '<span style="color:#fe854f">Confirm</span>',
-              action: 'confirm'
-            }]
+            buttons: ['cancel', 'confirm']
           });
 
           dialog.open();
@@ -365,27 +398,28 @@ export default Vue.extend({
               dialog.close();
             }.bind(this),
             'action:confirm': function () {
-              // this.getTargetLinkById(element, itemId).remove();
-              this.updateItem(element, itemId, updateData)
-
+              this.removeSourceLinkByTargetPort(linkView.sourceView.model, itemId)
+              this.editObjectMapperRecord(itemId, updateData)
               inspector.remove();
               dialog.close();
             }.bind(this)
           });
         } else {
-          // this.getTargetLinkById(element, itemId).remove();
-          this.updateItem(element, itemId, updateData)
+          // if no _path
+          const link = {
+            source: itemId,
+            target: itemId.split('data.')[1]
+          }
+          this.createLink(this.graph, link , records.ObjectMapperRecord, records.outputRecord)
+          this.editObjectMapperRecord(itemId, updateData)
         }
-      } else {
-
-        // this.getTargetLinkById(element, itemId).remove();
+      } else { // disconnect
+        this.removeTargetLinkBySourcePort(element, itemId)
         updateData = this.updateProperties(updateData, item)
-        this.updateItem(element, itemId, updateData)
+        element.item(itemId, updateData) // change the shape
       }
-
-      // const path = record.getItemPathArray(itemId);
-      // const path = util.setByPath({ _path: 'TEST' }, itemPath)
     },
+
     updateProperties(updateData, item) {
       for (const key in updateData) {
         if (!updateData[key]) {
@@ -407,16 +441,19 @@ export default Vue.extend({
       }
     },
 
-    editObjectMapperRecord(targetId, pathValue) {
+    editObjectMapperRecord(targetId, updateData) {
       let ObjectMapperRecord = records.ObjectMapperRecord
-      debugger
+
       let items = ObjectMapperRecord.attributes.items
 
       const path = ObjectMapperRecord.getItemPathArray(targetId)
 
+      const tempItem = ObjectMapperRecord.item(targetId)
+      console.log(tempItem)
+      debugger
       const item = this.getItemByPath(items, path)
 
-      pathValue ? item._path = pathValue : item._path = undefined
+      updateData ? this.updateProperties(updateData, item) : item._path = undefined
 
       this.updateItem(ObjectMapperRecord, targetId, item)
     },
@@ -435,6 +472,7 @@ export default Vue.extend({
       setTheme('material');
 
       const graph = this.graph = new dia.Graph({}, { cellNamespace: shapes });
+
       const paper = new dia.Paper({
         model: graph,
         width: 1200,
@@ -595,8 +633,9 @@ export default Vue.extend({
         const updateData = {
           _path: '.' + sourceId
         }
+        const eventName = 'connect'
 
-        this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'connect' })
+        this.editRecord(element, linkView, itemId, updateData, eventName);
       });
 
       paper.on('link:disconnect', (linkView, evt, elementViewDisconnected, magnet, arrowhead) => {
@@ -612,7 +651,9 @@ export default Vue.extend({
           _path: ''
         }
 
-        this.linkEditAction(element, itemId, updateData, { linkView, evt, magnet, arrowhead, eventName: 'disconnect' })
+        const eventName = 'disconnect'
+
+        this.editRecord(element, linkView, itemId, updateData, eventName)
       });
 
       paper.on('link:pointerclick', (linkView, evt, elementView, magnet, arrowhead) => {
@@ -747,15 +788,6 @@ export default Vue.extend({
     },
 
     objectMapperSchema(newData, oldData) {
-      // console.log({ oldData, newData })
-      //
-      //
-      // const objectMapperRecord = records.ObjectMapper
-      //
-      // const newObjectMapperRecordItems = objectMapperSchemaShape2Schema(newData)
-      // const oldObjectMapperRecordItems = objectMapperRecord.attributes.items[0]
-      //
-      // objectMapperRecord.recordUpdate(oldObjectMapperRecordItems, newObjectMapperRecordItems)
 
     },
 

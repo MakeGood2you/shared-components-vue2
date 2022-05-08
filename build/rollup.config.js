@@ -167,6 +167,9 @@ if (!argv.format || argv.format === 'iife') {
   };
   buildFormats.push(unpkgConfig);
 }
+const date = new Date().toISOString().split('T')
+console.info('Date : ', date[0])
+console.info('Time : ', date[1])
 
 // Export config
 export default buildFormats;

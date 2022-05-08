@@ -1,5 +1,6 @@
 import { ObjectMapper } from './ObjectMapperLogic'
 import { _replaceAll } from '../utils/strings'
+import { Link } from './shapes';
 
 export function getObjectFromDeepArray(data) {
     if (!Array.isArray(data)) {
@@ -201,6 +202,19 @@ export function createInput2ObjectMapperInstance(objectMapperShape) {
         })
     })
     return result
+}
+
+export function createLinks(sourceShape, targetShape, source2TargetInstance) {
+    const links = []
+    source2TargetInstance.map(link => {
+        links.push(
+            new Link({
+                source: { id: sourceShape.id, port: link.source },
+                target: { id: targetShape.id, port: link.target },
+            }),
+        )
+    })
+    return links
 }
 
 function init(schema, inputJson, outputJson) {

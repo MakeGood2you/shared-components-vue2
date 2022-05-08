@@ -469,7 +469,11 @@ export class Record extends shapes.standard.HeaderedRecord {
         };
     }
 
-    getItemTools() {
+    getItemTools(itemId) {
+        console.log(
+            itemId
+        )
+        debugger
         return [
             { action: 'edit', content: 'Edit Item' },
             { action: 'edit-decorator', content: 'Edit Decorator' },
@@ -590,6 +594,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         itemsIds.forEach((item) => {
             this.removeItem(item.id)
         })
+
         newItems.forEach((newItem) => {
             this.addPrevSibling(tempItem.id, newItem)
         })

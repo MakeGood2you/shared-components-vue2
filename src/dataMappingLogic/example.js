@@ -1,29 +1,17 @@
 import { Link, Record } from './shapes'
 
-// const { inputShape, objectMapperShape, outputShape, objectMapperToOutput } = init()
+import { createLinks } from './init'
 
 const records = {
-    inputTransformer: null,
-    ObjectMapper: null,
-    outputTransformer: null
+    InputRecord: null,
+    ObjectMapperRecord: null,
+    outputRecord: null
 }
 
-const createLinks = (sourceShape, targetShape, source2TargetInstance) => {
-    const links = []
-    source2TargetInstance.map(link => {
-        links.push(
-            new Link({
-                source: { id: sourceShape.id, port: link.source },
-                target: { id: targetShape.id, port: link.target },
-            }),
-        )
-    })
-    return links
-}
 
 const loadExample = function (graph, shapes, options) {
 
-    const InputRecord = new Record(['edit','add-next-sibling', 'add-prev-sibling','remove'],{
+    const InputRecord = new Record(['edit', 'add-next-sibling', 'add-prev-sibling', 'remove'], {
         items: [
             shapes.inputShape,
         ],
@@ -31,8 +19,7 @@ const loadExample = function (graph, shapes, options) {
         .position(100, 200)
         .addTo(graph)
 
-const a = new Record()
-    const ObjectMapperRecord = new Record(['edit','add-next-sibling', 'add-prev-sibling','remove'],{
+    const ObjectMapperRecord = new Record(['edit'], {
         items: [
             shapes.objectMapperShape,
         ],
@@ -40,7 +27,7 @@ const a = new Record()
         .position(400, 100)
         .addTo(graph)
 
-    const OutputRecord = new Record(['edit','add-next-sibling', 'add-prev-sibling','remove'],{
+    const OutputRecord = new Record([], {
         decorators: {
             user_email: 'fx1()',
             address_street: 'fx2()',
