@@ -10,7 +10,8 @@
     "dist/*",
     "src/**/*.vue",
     "rappid.tgz",
-    "src/dataMappingLogic/styles.scss"
+    "src/dataMappingLogic/styles.scss",
+    "src/assets/**/*"
   ],
   "sideEffects": false,
   "scripts": {

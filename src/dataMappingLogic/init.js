@@ -1,5 +1,4 @@
-import { ObjectMapper } from './ObjectMapperLogic'
-import { _replaceAll } from '../utils/strings'
+import { _replaceAll, cutStringFromSymbol } from '../utils/strings'
 import { Link } from './shapes';
 
 export function getObjectFromDeepArray(data) {
@@ -56,7 +55,7 @@ export function objectMapperSchema2Shape(schema, label = '$root', path = '') {
             result = {
                 _path: schema._path,
                 _type: 'Array',
-                icon: './assets/images/text-box-outline.png',
+                icon: '../assets/images/text-box-outline.png',
                 label: `${label}`,
                 items,
                 id: path + label,
@@ -79,7 +78,7 @@ export function objectMapperSchema2Shape(schema, label = '$root', path = '') {
 export function objectMapperSchemaShape2Schema(shape) {
     switch (shape._type) {
         case 'Object':
-            const result = shape.items.map((_item) => objectMapperSchemaShape2Schema(_item, false)).reduce(
+            const result = shape.items.map((_item) => objectMapperSchemaShape2Schema(_item)).reduce(
                 (previousValue, currentValue) => {
                     return Object.assign(previousValue, currentValue)
                 }, {})
@@ -121,7 +120,7 @@ export function objectMapperSchemaShape2Schema(shape) {
 
 }
 
-export const transformJSONShape = (obj, path = '') => {
+export const transformJSON2Shape = (obj, path = '') => {
     if (obj && typeof obj === 'object') {
         const isArray = Array.isArray(obj)
 
@@ -130,19 +129,22 @@ export const transformJSONShape = (obj, path = '') => {
             const _key = isArray ? `[${key}]` : key
 
             const label = createKeyValueString(key, obj[key])
-            // const label =' createKeyValueString(key, obj[key])'
 
-            const items = transformJSONShape(obj[key], path + _key + '.')
+            const items = transformJSON2Shape(obj[key], path + _key + '.')
 
             return items ?
                 {
+                    key,
+                    isArray,
                     label,
-                    id: path + _key,
                     items,
-                }
-                : {
                     id: path + _key,
+                } : {
+                    key,
+                    isArray,
                     label,
+                    value: obj[key],
+                    id: path + _key,
                 }
         })
     }
@@ -196,7 +198,7 @@ export function createInput2ObjectMapperInstance(objectMapperShape) {
     const objectMapperIds = getValuesFromShape(objectMapperShape, ['_absPath'])
     const result = []
     objectMapperIds.map((link) => {
-        let source = link['_absPath'].replace('data.', '')
+        let source = cutStringFromSymbol(link['_absPath'], '.')
 
         source = _replaceAll(source, '[*]', '[0]')
 
@@ -228,8 +230,8 @@ function init(schema, inputJson, outputJson) {
     // outputJson = objectMapperTransformer.mapObject({ data: inputJson })
 
     const objectMapperShape = [objectMapperSchema2Shape(schema)]
-    const inputShape = transformJSONShape(inputJson)
-    const outputShape = transformJSONShape(outputJson)
+    const inputShape = transformJSON2Shape(inputJson)
+    const outputShape = transformJSON2Shape(outputJson)
 
     const objectMapperToOutput = createObjectMapper2OutputInstance(objectMapperShape)
     const inputToObjectMapper = createInput2ObjectMapperInstance(objectMapperShape)

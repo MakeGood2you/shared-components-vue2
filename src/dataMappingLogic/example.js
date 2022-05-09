@@ -1,4 +1,4 @@
-import { Link, Record } from './shapes'
+import { Link, JsonRecord, MappingRecord, Record } from './shapes'
 
 import { createLinks } from './init'
 
@@ -57,3 +57,13 @@ export {
     loadExample,
     records
 }
+
+// link.on('change:source', function() {console.log('triggered when the link changes its source')})
+// link.on('change:target', function() { console.log('triggered when the link changes its target') })
+// link.on('change:attrs', function() { console.log('triggered when the link changes its attributes') })
+// link.on('change:smooth', function() { console.log('(deprecated) triggered when the link toggled interpolation') })
+// link.on('change:manhattan', function() { console.log('(deprecated) triggered when the link toggled orthogonal routing') })
+// link.on('change:vertices', function() { console.log('triggered when the link changes its vertices array') })
+// link.on('change:z', function() { console.log('triggered when the link is moved in the z-level (toFront and toBack)') })
+// link.on('transition:start', function() { console.log('triggered when a transition starts.') })
+// link.on('transition:end', function() { console.log('triggered when a transition ends') })

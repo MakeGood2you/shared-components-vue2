@@ -13,10 +13,10 @@ import { anchorNamespace } from '../dataMappingLogic/anchors';
 import { loadExample, records } from '../dataMappingLogic/example';
 // import { dialog } from '../dataMappingLogic/utils';
 import { chekLinksRules } from '../dataMappingLogic/recordsRules';
-import { _replaceAll } from '../utils/strings';
+import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
 import init, {
   objectMapperSchemaShape2Schema,
-  transformJSONShape,
+  transformJSON2Shape,
   objectMapperSchema2Shape,
   createObjectMapper2OutputInstance,
   createInput2ObjectMapperInstance,
@@ -400,9 +400,10 @@ export default Vue.extend({
           // if no _path
           const link = {
             source: itemId,
-            target: itemId.split('data.')[1]
+            target: cutStringFromSymbol(itemId, '.')
+
           }
-          this.createLink(this.graph, link , records.ObjectMapperRecord, records.outputRecord)
+          this.createLink(this.graph, link, records.ObjectMapperRecord, records.outputRecord)
           this.editObjectMapperRecord(itemId, updateData)
         }
         // if eventName === disconnect
@@ -456,7 +457,7 @@ export default Vue.extend({
       const schema = objectMapperSchemaShape2Schema(records.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
-        schema: schema.data,
+        schema: schema.$root,
         input: this.inputJson,
       })
     },
@@ -540,6 +541,12 @@ export default Vue.extend({
           return (svModel.getItemSide(sourceItemId) !== 'left');
         }
       });
+
+      paper.options.allowLink = (linkView, paper) => {
+        const validation = chekLinksRules('link:connect', linkView, paper.model)
+        return validation.isValid
+      }
+
       const scroller = new ui.PaperScroller({
         paper,
         cursor: 'grab',
@@ -603,7 +610,6 @@ export default Vue.extend({
       function zoom(x, y, delta) {
         scroller.zoom(delta * 0.2, { min: 0.4, max: 3, grid: 0.2, ox: x, oy: y });
       }
-
       paper.on('blank:pointerdown', (evt) => scroller.startPanning(evt));
 
       paper.on('blank:mousewheel', (evt, ox, oy, delta) => {
@@ -617,9 +623,14 @@ export default Vue.extend({
       });
 
       paper.on('link:connect', (linkView, evt, elementViewConnected, magnet, arrowhead) => {
+        const element = elementViewConnected.model;
+        const link = linkView.model
+        const validation = chekLinksRules('link:connect', linkView, element, arrowhead)
+        if (!validation.isValid) {
+          return
+        }
         let sourceId = linkView.model.attributes.source.port
         const itemId = elementViewConnected.findAttribute('item-id', magnet)
-        const element = elementViewConnected.model;
         sourceId = _replaceAll(sourceId, "[0]", "[*]")
         evt.stopPropagation();
 
@@ -767,7 +778,7 @@ export default Vue.extend({
     inputJson(newData, oldData) {
       const inputRecord = records.InputRecord
 
-      const newInputRecordItems = transformJSONShape(newData)
+      const newInputRecordItems = transformJSON2Shape(newData)
       const oldInputRecordItems = inputRecord.attributes.items[0]
 
       inputRecord.recordUpdate(oldInputRecordItems, newInputRecordItems)
@@ -775,7 +786,7 @@ export default Vue.extend({
       const schema = objectMapperSchemaShape2Schema(records.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
-        schema: schema.data,
+        schema: schema.$root,
         input: newData,
       })
     },
@@ -788,7 +799,7 @@ export default Vue.extend({
 
       const outputRecord = records.outputRecord
 
-      const newOutputRecordItems = transformJSONShape(newData)
+      const newOutputRecordItems = transformJSON2Shape(newData)
       const oldOutputRecordItems = outputRecord.attributes.items[0]
 
       outputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)

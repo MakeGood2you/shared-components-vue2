@@ -32,7 +32,7 @@ export class Constant extends shapes.standard.BorderedRecord {
             items: [
                 [{
                     id: 'icon',
-                    icon: 'assets/images/clipboard.svg',
+                    icon: '../assets/images/clipboard.svg',
                 }],
                 [{
                     id: 'value',
@@ -52,7 +52,7 @@ export class Constant extends shapes.standard.BorderedRecord {
         return {
             id: util.uuid(),
             label: '""',
-            icon: 'assets/images/clipboard.svg'
+            icon: '../assets/images/clipboard.svg'
         };
     }
 
@@ -134,15 +134,15 @@ export class Concat extends shapes.standard.HeaderedRecord {
                 [{
                     id: 'value_1',
                     label: 'Value 1',
-                    icon: 'assets/images/link.svg',
+                    icon: '../assets/images/link.svg',
                 }, {
                     id: 'value_2',
                     label: 'Value 2',
-                    icon: 'assets/images/link.svg',
+                    icon: '../assets/images/link.svg',
                 }, {
                     id: 'value_3',
                     label: 'Value 3',
-                    icon: 'assets/images/link.svg',
+                    icon: '../assets/images/link.svg',
                 }], [{
                     id: 'result',
                     label: 'Result ⇛',
@@ -176,7 +176,7 @@ export class Concat extends shapes.standard.HeaderedRecord {
         return {
             id: util.uuid(),
             label: 'Value ' + (this.getNumberOfValues() + 1),
-            icon: 'assets/images/link.svg'
+            icon: '../assets/images/link.svg'
         };
     }
 
@@ -280,11 +280,11 @@ export class GetDate extends shapes.standard.HeaderedRecord {
                 }, {
                     id: 'month',
                     label: 'month',
-                    icon: 'assets/images/link.svg',
+                    icon: '../assets/images/link.svg',
                 }, {
                     id: 'day',
                     label: 'day',
-                    icon: 'assets/images/link.svg',
+                    icon: '../assets/images/link.svg',
                 }]
             ]
         }, super.defaults);
@@ -310,7 +310,7 @@ export class GetDate extends shapes.standard.HeaderedRecord {
         return {
             id: util.uuid(),
             label: 'item',
-            icon: 'assets/images/document.svg'
+            icon: '../assets/images/document.svg'
         };
     }
 
@@ -465,7 +465,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         return {
             id: util.uuid(),
             label: 'new_item',
-            icon: 'assets/images/document.svg'
+            icon: '../assets/images/document.svg'
         };
     }
 
@@ -491,102 +491,6 @@ export class Record extends shapes.standard.HeaderedRecord {
         ];
     }
 
-    getObjectMapperInspectorConfig() {
-        return {
-            label: {
-                label: 'Label',
-                type: 'content-editable'
-            },
-            _path: {
-                label: '_path',
-                type: 'content-editable'
-            },
-            _default: {
-                label: '_default',
-                type: 'content-editable'
-            },
-            _type: {
-                label: '_type',
-                type: 'content-editable'
-            },
-            _pathLevelUp: {
-                label: '_pathLevelUp',
-                type: 'content-editable'
-            },
-            icon: {
-                label: 'Icon',
-                type: 'select-button-group',
-                // options: [{
-                //         value: 'assets/images/link.svg',
-                //         content: '<img height="42px" src="assets/images/link.svg"/>'
-                //     }, {
-                //         value: 'assets/images/document.svg',
-                //         content: '<img height="42px" src="assets/images/document.svg"/>'
-                //     }, {
-                //         value: 'assets/images/clipboard.svg',
-                //         content: '<img height="42px" src="assets/images/clipboard.svg"/>'
-                //     }, {
-                //         value: 'assets/images/file.svg',
-                //         content: '<img height="42px" src="assets/images/file.svg"/>'
-                //     }]
-            },
-            highlighted: {
-                label: 'Highlight',
-                type: 'toggle'
-            }
-        };
-    }
-
-    getJSONInspectorConfig() {
-        return {
-            label: {
-                label: 'Label',
-                type: 'content-editable'
-            },
-
-            icon: {
-                label: 'Icon',
-                type: 'select-button-group',
-                // options: [{
-                //         value: 'assets/images/link.svg',
-                //         content: '<img height="42px" src="assets/images/link.svg"/>'
-                //     }, {
-                //         value: 'assets/images/document.svg',
-                //         content: '<img height="42px" src="assets/images/document.svg"/>'
-                //     }, {
-                //         value: 'assets/images/clipboard.svg',
-                //         content: '<img height="42px" src="assets/images/clipboard.svg"/>'
-                //     }, {
-                //         value: 'assets/images/file.svg',
-                //         content: '<img height="42px" src="assets/images/file.svg"/>'
-                //     }]
-            },
-            highlighted: {
-                label: 'Highlight',
-                type: 'toggle'
-            }
-        };
-    }
-
-    isDeepMatchItemExist(item, newItem) {
-
-        if (item.items && !newItem.items) {
-            this.removeItem(item.items[0].id)
-        }
-        if (item.items && newItem.items) {
-            this.isDeepMatchItemExist(item.items[0], newItem.items[0])
-            return {
-                isExist: true,
-                item
-            }
-        }
-        // if (item.items && newItem.items) {
-        //     return false
-        // }
-        return false
-
-    }
-
     recordUpdate(itemsIds, newItems) {
         let tempItem = this.getDefaultItem()
         this.addPrevSibling(itemsIds[0].id, tempItem)
@@ -602,6 +506,184 @@ export class Record extends shapes.standard.HeaderedRecord {
 
         const isItemVisible = this.isItemVisible(itemsIds[0].id)
     }
+    getJSONInspectorConfig() {
+        return {
+            label: {
+                label: 'Label',
+                type: 'content-editable'
+            },
+            icon: {
+                label: 'Icon',
+                type: 'select-button-group',
+                options: [{
+                    value: 'link',
+                    content: '<img height="42px" src="../assets/images/link.svg"/>',
+                    buttonWidth: 20,
+                    icon: '../assets/images/link.svg',
+                    iconSelected: '../assets/images/link.svg',
+                    iconWidth: 20,
+                    iconHeight: 20
+
+                }, {
+                    value: 'document',
+                    content: '<img height="42px" src="../assets/images/document.svg"/>'
+                }, {
+                    value: 'clipboard',
+                    content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
+                }, {
+                    value: 'file',
+                    content: '<img height="42px" src="../assets/images/file.svg"/>'
+                }]
+            },
+            highlighted: {
+                label: 'Highlight',
+                type: 'toggle'
+            }
+        };
+    }
+    getObjectMapperInspectorConfig() {
+        return {
+            label: {
+                label: 'Label',
+                type: 'content-editable'
+            },
+            _path: {
+                label: 'path',
+                type: 'content-editable'
+            },
+            _default: {
+                label: 'default',
+                type: 'content-editable'
+            },
+            _type: {
+                label: 'type',
+                type: 'content-editable'
+            },
+            _pathLevelUp: {
+                label: '_pathLevelUp',
+                type: 'content-editable'
+            },
+            icon: {
+                label: 'Icon',
+                type: 'select-button-group',
+                options: [{
+                    value: '../assets/images/link.svg',
+                    content: '<img height="42px" src="../assets/images/link.svg"/>'
+                }, {
+                    value: '../assets/images/document.svg',
+                    content: '<img height="42px" src="../assets/images/document.svg"/>'
+                }, {
+                    value: '../assets/images/clipboard.svg',
+                    content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
+                }, {
+                    value: '../assets/images/file.svg',
+                    content: '<img height="42px" src="../assets/images/file.svg"/>'
+                }]
+            },
+            highlighted: {
+                label: 'Highlight',
+                type: 'toggle'
+            }
+        };
+    }
+
+}
+
+export class MappingRecord extends Record {
+
+    constructor(allowedTools, attributes) {
+        super(allowedTools, attributes);
+    }
+
+    // getObjectMapperInspectorConfig() {
+    //     return {
+    //         label: {
+    //             label: 'Label',
+    //             type: 'content-editable'
+    //         },
+    //         _path: {
+    //             label: 'path',
+    //             type: 'content-editable'
+    //         },
+    //         _default: {
+    //             label: 'default',
+    //             type: 'content-editable'
+    //         },
+    //         _type: {
+    //             label: 'type',
+    //             type: 'content-editable'
+    //         },
+    //         _pathLevelUp: {
+    //             label: '_pathLevelUp',
+    //             type: 'content-editable'
+    //         },
+    //         icon: {
+    //             label: 'Icon',
+    //             type: 'select-button-group',
+    //             options: [{
+    //                     value: '../assets/images/link.svg',
+    //                     content: '<img height="42px" src="../assets/images/link.svg"/>'
+    //                 }, {
+    //                     value: '../assets/images/document.svg',
+    //                     content: '<img height="42px" src="../assets/images/document.svg"/>'
+    //                 }, {
+    //                     value: '../assets/images/clipboard.svg',
+    //                     content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
+    //                 }, {
+    //                     value: '../assets/images/file.svg',
+    //                     content: '<img height="42px" src="../assets/images/file.svg"/>'
+    //                 }]
+    //         },
+    //         highlighted: {
+    //             label: 'Highlight',
+    //             type: 'toggle'
+    //         }
+    //     };
+    // }
+
+}
+export class JsonRecord extends shapes.standard.HeaderedRecord {
+
+    constructor(allowedTools, attributes) {
+        super(allowedTools, attributes);
+    }
+
+
+    // getJSONInspectorConfig() {
+    //     return {
+    //         label: {
+    //             label: 'Label',
+    //             type: 'content-editable'
+    //         },
+    //         icon: {
+    //             label: 'Icon',
+    //             type: 'select-button-group',
+    //             options: [{
+    //                 value: 'link',
+    //                 content: '<img height="42px" src="../assets/images/link.svg"/>',
+    //                 buttonWidth: 20,
+    //                 icon: '../assets/images/link.svg',
+    //                 iconSelected: '../assets/images/link.svg',
+    //                 iconWidth: 20,
+    //                 iconHeight: 20
+    //
+    //             }, {
+    //                 value: 'document',
+    //                 content: '<img height="42px" src="../assets/images/document.svg"/>'
+    //             }, {
+    //                 value: 'clipboard',
+    //                 content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
+    //             }, {
+    //                 value: 'file',
+    //                 content: '<img height="42px" src="../assets/images/file.svg"/>'
+    //             }]
+    //         },
+    //         highlighted: {
+    //             label: 'Highlight',
+    //             type: 'toggle'
+    //         }
+    //     };
+    // }
 }
 
 function warning(text) {
