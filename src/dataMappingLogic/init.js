@@ -19,11 +19,11 @@ export const createKeyValueString = (key, value) => {
     else if (value.constructor.name === 'Array')
         return `${key}: Array`
     else {
-        
+
     }
 }
 
-export function objectMapperSchema2Shape(schema, label = 'data', path = '') {
+export function objectMapperSchema2Shape(schema, label = '$root', path = '') {
     let result = null
 
     switch (schema._type) {
@@ -174,16 +174,20 @@ export function getValuesFromShape(shape, keySearch = 'id', values = []) {
 }
 
 export function createObjectMapper2OutputInstance(objectMapperShape) {
+
     const objectMapperIds = getValuesFromShape(objectMapperShape)
 
     const result = []
     objectMapperIds.forEach((source) => {
-        const target = source.replace('data.', '')
-        const link = {
-            source,
-            target,
+        const index = source.indexOf('.')
+        if (index >= 0) {
+            const target = source.substring(index + 1)
+            const link = {
+                source,
+                target,
+            }
+            result.push(link)
         }
-        result.push(link)
     })
     return result
 }

@@ -348,19 +348,10 @@ export default Vue.extend({
       return this.getItemByPath(items[path[0]], path)
     },
 
-    // linkEditAction(element, itemId, updateData, options) {
-    //
-    //   const { linkView, evt, magnet, arrowhead, eventName } = options
-    //   const objectMapperRecord = records.ObjectMapperRecord
-    //   const objectMapperItemPath = objectMapperRecord.getItemPathArray(itemId)
-    //   const path = element.getItemPathArray(itemId)
-    //
-    //   this.editRecord(element, itemId, path, updateData, eventName)
-    // },
-
     findRecord(id) {
       return records.list.findIndex(record => record.id === id)
     },
+
     createLink(graph, link, sourceShape, targetShape) {
       const newLink = new Link({
         source: { id: sourceShape.id, port: link.source },
@@ -368,6 +359,7 @@ export default Vue.extend({
       })
       newLink.addTo(graph)
     },
+
     editRecord(element, linkView, itemId, updateData, eventName) {
       if (!itemId) return;
       const item = element.item(itemId)
@@ -413,7 +405,8 @@ export default Vue.extend({
           this.createLink(this.graph, link , records.ObjectMapperRecord, records.outputRecord)
           this.editObjectMapperRecord(itemId, updateData)
         }
-      } else { // disconnect
+        // if eventName === disconnect
+      } else {
         this.removeTargetLinkBySourcePort(element, itemId)
         updateData = this.updateProperties(updateData, item)
         element.item(itemId, updateData) // change the shape
