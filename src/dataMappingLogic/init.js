@@ -175,20 +175,25 @@ export function getValuesFromShape(shape, keySearch = 'id', values = []) {
     return values
 }
 
-export function createObjectMapper2OutputInstance(objectMapperShape) {
+export function createObjectMapper2OutputInstance(objectMapperShape, outputShape) {
 
     const objectMapperIds = getValuesFromShape(objectMapperShape)
+    const outputIds = getValuesFromShape(outputShape)
 
     const result = []
     objectMapperIds.forEach((source) => {
         const index = source.indexOf('.')
         if (index >= 0) {
+
             const target = source.substring(index + 1)
-            const link = {
-                source,
-                target,
+
+            if (outputIds.includes(target)) {
+                const link = {
+                    source,
+                    target,
+                }
+                result.push(link)
             }
-            result.push(link)
         }
     })
     return result
@@ -233,7 +238,7 @@ function init(schema, inputJson, outputJson) {
     const inputShape = transformJSON2Shape(inputJson)
     const outputShape = transformJSON2Shape(outputJson)
 
-    const objectMapperToOutput = createObjectMapper2OutputInstance(objectMapperShape)
+    const objectMapperToOutput = createObjectMapper2OutputInstance(objectMapperShape, outputShape)
     const inputToObjectMapper = createInput2ObjectMapperInstance(objectMapperShape)
     console.log('objectMapperToOutput ===> :', objectMapperToOutput)
     console.log('inputToObjectMapper ===> :', inputToObjectMapper)

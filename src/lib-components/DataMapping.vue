@@ -462,6 +462,7 @@ export default Vue.extend({
       })
     },
 
+
     start(objectMapperSchema, inputJson, outputJson) {
       setTheme('material');
 
@@ -610,6 +611,7 @@ export default Vue.extend({
       function zoom(x, y, delta) {
         scroller.zoom(delta * 0.2, { min: 0.4, max: 3, grid: 0.2, ox: x, oy: y });
       }
+
       paper.on('blank:pointerdown', (evt) => scroller.startPanning(evt));
 
       paper.on('blank:mousewheel', (evt, ox, oy, delta) => {
@@ -758,12 +760,14 @@ export default Vue.extend({
 
       this.scroller = scroller
       this.paper = paper
+      // this.isValidLinks(inputToObjectMapper, objectMapperToOutput)
     },
 
   },
 
   created() {
     this.start(this.objectMapperSchema, this.inputJson, this.outputJson)
+
   },
 
   mounted() {

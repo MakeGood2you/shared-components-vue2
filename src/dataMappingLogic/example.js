@@ -1,4 +1,4 @@
-import { Link, JsonRecord, MappingRecord, Record } from './shapes'
+import { JsonRecord, MappingRecord } from './shapes'
 
 import { createLinks } from './init'
 
@@ -46,10 +46,11 @@ const loadExample = function (graph, shapes, options) {
     records.list = [InputRecord, ObjectMapperRecord, OutputRecord]
 
     // createInputLinks(links)
-    let links = createLinks(InputRecord, ObjectMapperRecord, options.inputToObjectMapper)
-    links = links.concat(createLinks(ObjectMapperRecord, OutputRecord, options.objectMapperToOutput))
+    let links = createLinks(InputRecord, ObjectMapperRecord, options.inputToObjectMapper, graph)
+    links = links.concat(createLinks(ObjectMapperRecord, OutputRecord, options.objectMapperToOutput, graph))
     // Array.prototype.push.apply(links, createOutputLinks())
     links.forEach(function (link) {
+
         link.addTo(graph)
     })
 }
