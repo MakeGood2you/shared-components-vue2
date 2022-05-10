@@ -1,4 +1,4 @@
-import { routers, g } from '@clientio/rappid';
+import { routers, g } from '@OtailO-recommerce/rappid';
 
 const DEFAULT_PADDING = 10;
 

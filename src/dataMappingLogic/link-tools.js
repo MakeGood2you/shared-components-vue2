@@ -1,4 +1,4 @@
-import { linkTools } from '@clientio/rappid';
+import { linkTools } from '@OtailO-recommerce/rappid';
 
 export const SourceArrowhead = linkTools.SourceArrowhead.extend({
     tagName: 'circle',

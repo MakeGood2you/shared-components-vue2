@@ -1,4 +1,4 @@
-import { dia, ui, setTheme, shapes, util, elementTools } from '@clientio/rappid';
+import { dia, ui, setTheme, shapes, util, elementTools } from '@OtailO-recommerce/rappid';
 import { Link } from './shapes';
 import { Decorator } from './highlighters';
 import { SourceArrowhead, TargetArrowhead, Button } from './link-tools';

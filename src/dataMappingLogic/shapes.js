@@ -1,4 +1,4 @@
-import { shapes, util } from '@clientio/rappid';
+import { shapes, util } from '@OtailO-recommerce/rappid';
 
 export class Constant extends shapes.standard.BorderedRecord {
     defaults() {

@@ -4,7 +4,7 @@
 
 <script>
 
-import { dia, elementTools, setTheme, shapes, ui, util } from '@clientio/rappid';
+import { dia, elementTools, setTheme, shapes, ui, util } from '@OtailO-recommerce/rappid';
 import { Link } from '../dataMappingLogic/shapes';
 import { Decorator } from '../dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
@@ -812,7 +812,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import "~@clientio/rappid/rappid.css";
+@import "~@OtailO-recommerce/rappid/rappid.css";
 @import '../dataMappingLogic/styles.scss';
 
 .canvas {
