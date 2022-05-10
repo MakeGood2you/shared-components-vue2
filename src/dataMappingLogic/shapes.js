@@ -370,7 +370,7 @@ export class Record extends shapes.standard.HeaderedRecord {
             itemBelowViewSelector: 'footer',
             padding: { top: 35, left: 15, right: 10, bottom: 10 },
             scrollTop: 0,
-            size: { height: 300 },
+            size: { height: 400, width: 250 },
             itemOverflow: true,
             attrs: {
                 root: {
@@ -506,41 +506,13 @@ export class Record extends shapes.standard.HeaderedRecord {
 
         const isItemVisible = this.isItemVisible(itemsIds[0].id)
     }
-    getJSONInspectorConfig() {
-        return {
-            label: {
-                label: 'Label',
-                type: 'content-editable'
-            },
-            icon: {
-                label: 'Icon',
-                type: 'select-button-group',
-                options: [{
-                    value: 'link',
-                    content: '<img height="42px" src="../assets/images/link.svg"/>',
-                    buttonWidth: 20,
-                    icon: '../assets/images/link.svg',
-                    iconSelected: '../assets/images/link.svg',
-                    iconWidth: 20,
-                    iconHeight: 20
+}
 
-                }, {
-                    value: 'document',
-                    content: '<img height="42px" src="../assets/images/document.svg"/>'
-                }, {
-                    value: 'clipboard',
-                    content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
-                }, {
-                    value: 'file',
-                    content: '<img height="42px" src="../assets/images/file.svg"/>'
-                }]
-            },
-            highlighted: {
-                label: 'Highlight',
-                type: 'toggle'
-            }
-        };
+export class MappingRecord extends Record {
+    constructor(allowedTools, attributes) {
+        super(allowedTools, attributes);
     }
+
     getObjectMapperInspectorConfig() {
         return {
             label: {
@@ -586,104 +558,48 @@ export class Record extends shapes.standard.HeaderedRecord {
             }
         };
     }
-
 }
 
-export class MappingRecord extends Record {
-
+export class JsonRecord extends Record {
     constructor(allowedTools, attributes) {
         super(allowedTools, attributes);
     }
 
-    // getObjectMapperInspectorConfig() {
-    //     return {
-    //         label: {
-    //             label: 'Label',
-    //             type: 'content-editable'
-    //         },
-    //         _path: {
-    //             label: 'path',
-    //             type: 'content-editable'
-    //         },
-    //         _default: {
-    //             label: 'default',
-    //             type: 'content-editable'
-    //         },
-    //         _type: {
-    //             label: 'type',
-    //             type: 'content-editable'
-    //         },
-    //         _pathLevelUp: {
-    //             label: '_pathLevelUp',
-    //             type: 'content-editable'
-    //         },
-    //         icon: {
-    //             label: 'Icon',
-    //             type: 'select-button-group',
-    //             options: [{
-    //                     value: '../assets/images/link.svg',
-    //                     content: '<img height="42px" src="../assets/images/link.svg"/>'
-    //                 }, {
-    //                     value: '../assets/images/document.svg',
-    //                     content: '<img height="42px" src="../assets/images/document.svg"/>'
-    //                 }, {
-    //                     value: '../assets/images/clipboard.svg',
-    //                     content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
-    //                 }, {
-    //                     value: '../assets/images/file.svg',
-    //                     content: '<img height="42px" src="../assets/images/file.svg"/>'
-    //                 }]
-    //         },
-    //         highlighted: {
-    //             label: 'Highlight',
-    //             type: 'toggle'
-    //         }
-    //     };
-    // }
+    getJSONInspectorConfig() {
+        return {
+            label: {
+                label: 'Label',
+                type: 'content-editable'
+            },
+            icon: {
+                label: 'Icon',
+                type: 'select-button-group',
+                options: [{
+                    value: 'link',
+                    content: '<img height="42px" src="../assets/images/link.svg"/>',
+                    buttonWidth: 20,
+                    icon: '../assets/images/link.svg',
+                    iconSelected: '../assets/images/link.svg',
+                    iconWidth: 20,
+                    iconHeight: 20
 
-}
-export class JsonRecord extends shapes.standard.HeaderedRecord {
-
-    constructor(allowedTools, attributes) {
-        super(allowedTools, attributes);
+                }, {
+                    value: 'document',
+                    content: '<img height="42px" src="../assets/images/document.svg"/>'
+                }, {
+                    value: 'clipboard',
+                    content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
+                }, {
+                    value: 'file',
+                    content: '<img height="42px" src="../assets/images/file.svg"/>'
+                }]
+            },
+            highlighted: {
+                label: 'Highlight',
+                type: 'toggle'
+            }
+        };
     }
-
-
-    // getJSONInspectorConfig() {
-    //     return {
-    //         label: {
-    //             label: 'Label',
-    //             type: 'content-editable'
-    //         },
-    //         icon: {
-    //             label: 'Icon',
-    //             type: 'select-button-group',
-    //             options: [{
-    //                 value: 'link',
-    //                 content: '<img height="42px" src="../assets/images/link.svg"/>',
-    //                 buttonWidth: 20,
-    //                 icon: '../assets/images/link.svg',
-    //                 iconSelected: '../assets/images/link.svg',
-    //                 iconWidth: 20,
-    //                 iconHeight: 20
-    //
-    //             }, {
-    //                 value: 'document',
-    //                 content: '<img height="42px" src="../assets/images/document.svg"/>'
-    //             }, {
-    //                 value: 'clipboard',
-    //                 content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
-    //             }, {
-    //                 value: 'file',
-    //                 content: '<img height="42px" src="../assets/images/file.svg"/>'
-    //             }]
-    //         },
-    //         highlighted: {
-    //             label: 'Highlight',
-    //             type: 'toggle'
-    //         }
-    //     };
-    // }
 }
 
 function warning(text) {

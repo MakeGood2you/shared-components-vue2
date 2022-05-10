@@ -11,7 +11,7 @@ const records = {
 
 const loadExample = function (graph, shapes, options) {
 
-    const InputRecord = new Record(['edit', 'add-next-sibling', 'add-prev-sibling', 'remove'], {
+    const InputRecord = new JsonRecord(['edit', 'add-next-sibling', 'add-prev-sibling', 'remove'], {
         items: [
             shapes.inputShape,
         ],
@@ -19,15 +19,15 @@ const loadExample = function (graph, shapes, options) {
         .position(100, 200)
         .addTo(graph)
 
-    const ObjectMapperRecord = new Record(['edit'], {
+    const ObjectMapperRecord = new MappingRecord(['edit'], {
         items: [
             shapes.objectMapperShape,
         ],
     }).setName('Mapping Schema')
-        .position(400, 100)
+        .position(550, 100)
         .addTo(graph)
 
-    const OutputRecord = new Record([], {
+    const OutputRecord = new JsonRecord([], {
         decorators: {
             user_email: 'fx1()',
             address_street: 'fx2()',
@@ -37,7 +37,7 @@ const loadExample = function (graph, shapes, options) {
         ],
     })
         .setName('output JSON')
-        .position(750, 200)
+        .position(900, 200)
         .addTo(graph)
 
     records.InputRecord = InputRecord
