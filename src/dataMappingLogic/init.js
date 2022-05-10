@@ -34,6 +34,7 @@ export function objectMapperSchema2Shape(schema, label = '$root', path = '') {
                 }
             })
             result = {
+                icon: 'mapper/file.svg',
                 _path: schema._path,
                 _type: 'Object',
                 label: `${label}`,
@@ -55,7 +56,7 @@ export function objectMapperSchema2Shape(schema, label = '$root', path = '') {
             result = {
                 _path: schema._path,
                 _type: 'Array',
-                icon: '../assets/images/text-box-outline.png',
+                icon: 'mapper/file.svg',
                 label: `${label}`,
                 items,
                 id: path + label,
@@ -67,6 +68,7 @@ export function objectMapperSchema2Shape(schema, label = '$root', path = '') {
                 ...schema,
                 label,
                 id: path + label,
+                icon: 'mapper/document.svg'
             }
             break
         default:
@@ -139,7 +141,9 @@ export const transformJSON2Shape = (obj, path = '') => {
                     label,
                     items,
                     id: path + _key,
+                    icon: 'mapper/file.svg'
                 } : {
+                    icon: 'mapper/document.svg',
                     key,
                     isArray,
                     label,
@@ -148,6 +152,23 @@ export const transformJSON2Shape = (obj, path = '') => {
                 }
         })
     }
+}
+
+export function transformShape2JSON(shape) {
+    if (!Array.isArray(shape)) {
+        const value = shape.value ?? transformShape2JSON(shape.items)
+        return shape.isArray ? value : { [shape.key]: value }
+    }
+    const response = shape.map(_item => transformShape2JSON(_item))
+
+    if (shape.isArray) {
+        return response
+    }
+
+    return response.reduce(
+        (previousValue, currentValue) => {
+            return Object.assign(previousValue, currentValue)
+        }, {})
 }
 
 export function getValuesFromShape(shape, keySearch = 'id', values = []) {

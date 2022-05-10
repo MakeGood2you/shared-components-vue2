@@ -1,3 +1,4 @@
+import i18nMixin from "../services/i18n.vue.mixin";
 import { JsonRecord, MappingRecord } from './shapes'
 
 import { createLinks } from './init'
@@ -15,7 +16,7 @@ const loadExample = function (graph, shapes, options) {
         items: [
             shapes.inputShape,
         ],
-    }).setName('input JSON')
+    }).setName(i18nMixin.methods.t('InputRecordName'))
         .position(100, 200)
         .addTo(graph)
 

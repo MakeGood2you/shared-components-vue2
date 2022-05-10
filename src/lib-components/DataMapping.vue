@@ -14,6 +14,7 @@ import { loadExample, records } from '../dataMappingLogic/example';
 // import { dialog } from '../dataMappingLogic/utils';
 import { chekLinksRules } from '../dataMappingLogic/recordsRules';
 import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
+import { getLanguage } from '../services/i18n.vue.mixin';
 import init, {
   objectMapperSchemaShape2Schema,
   transformJSON2Shape,
@@ -47,6 +48,10 @@ export default Vue.extend({
     isLiveUpdate: {
       type: Boolean,
       default: true
+    },
+    lang: {
+      type: String,
+      default: 'he'
     },
 
   },
@@ -444,7 +449,7 @@ export default Vue.extend({
 
       const tempItem = ObjectMapperRecord.item(targetId)
       console.log(tempItem)
-      debugger
+
       const item = this.getItemByPath(items, path)
 
       updateData ? this.updateProperties(updateData, item) : item._path = undefined
@@ -767,7 +772,7 @@ export default Vue.extend({
 
   created() {
     this.start(this.objectMapperSchema, this.inputJson, this.outputJson)
-
+    getLanguage(this.lang)
   },
 
   mounted() {
@@ -809,6 +814,9 @@ export default Vue.extend({
       outputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
     },
 
+    lang(newData, oldData) {
+
+    },
     immediate: true,
     deep: true
   },

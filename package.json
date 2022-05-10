@@ -1,15 +1,15 @@
 {
   "name": "@OtailO-recommerce/shared-components-vue2",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "",
   "main": "dist/shared-components-vue2.ssr.js",
   "browser": "dist/shared-components-vue2.esm.js",
   "module": "dist/shared-components-vue2.esm.js",
   "unpkg": "dist/shared-components-vue2.min.js",
   "files": [
+    "rappid.tgz",
     "dist/*",
     "src/**/*.vue",
-    "rappid.tgz",
     "src/dataMappingLogic/styles.scss",
     "src/assets/**/*"
   ],
@@ -24,7 +24,9 @@
     "build:unpkg": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format iife"
   },
   "dependencies": {
-    "@clientio/rappid": "file:./rappid.tgz"
+    "@clientio/rappid": "file:./rappid.tgz",
+    "@vue/test-utils": "^2.0.0-rc.21",
+    "vue-i18n": "^8.11.2"
   },
   "devDependencies": {
     "jest": "^27.4.5",

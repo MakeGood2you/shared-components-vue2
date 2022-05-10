@@ -473,7 +473,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         console.log(
             itemId
         )
-        debugger
+        
         return [
             { action: 'edit', content: 'Edit Item' },
             { action: 'edit-decorator', content: 'Edit Decorator' },
@@ -539,17 +539,17 @@ export class MappingRecord extends Record {
                 label: 'Icon',
                 type: 'select-button-group',
                 options: [{
-                    value: '../assets/images/link.svg',
-                    content: '<img height="42px" src="../assets/images/link.svg"/>'
+                    value: 'mapper/link.svg',
+                    content: '<img height="42px" src="mapper/link.svg"/>'
                 }, {
-                    value: '../assets/images/document.svg',
-                    content: '<img height="42px" src="../assets/images/document.svg"/>'
+                    value: 'mapper/document.svg',
+                    content: '<img height="42px" src="mapper/document.svg"/>'
                 }, {
-                    value: '../assets/images/clipboard.svg',
-                    content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
+                    value: 'mapper/clipboard.svg',
+                    content: '<img height="42px" src="mapper/clipboard.svg"/>'
                 }, {
-                    value: '../assets/images/file.svg',
-                    content: '<img height="42px" src="../assets/images/file.svg"/>'
+                    value: 'mapper/file.svg',
+                    content: '<img height="42px" src="mapper/file.svg"/>'
                 }]
             },
             highlighted: {
@@ -560,6 +560,7 @@ export class MappingRecord extends Record {
     }
 }
 
+console.log('__dirname ==> ',__dirname)
 export class JsonRecord extends Record {
     constructor(allowedTools, attributes) {
         super(allowedTools, attributes);

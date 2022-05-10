@@ -102,31 +102,31 @@ const outputShape = [
 ]
 const test = transformShape2JSON(outputShape)
 console.log('outputShape ===> JSON ===>', test)
-debugger
 
-function transformShape2JSON(shape) {
-    if (!Array.isArray(shape)) {
-        const value = shape.value ?? transformShape2JSON(shape.items)
-        return shape.isArray ? value : { [shape.key]: value }
-    }
-    const response = shape.map(_item => transformShape2JSON(_item))
 
-    if (shape.isArray) {
-        return response
-    }
-
-    return response.reduce(
-        (previousValue, currentValue) => {
-            return Object.assign(previousValue, currentValue)
-        }, {})
-}
+// function transformShape2JSON(shape) {
+//     if (!Array.isArray(shape)) {
+//         const value = shape.value ?? transformShape2JSON(shape.items)
+//         return shape.isArray ? value : { [shape.key]: value }
+//     }
+//     const response = shape.map(_item => transformShape2JSON(_item))
+//
+//     if (shape.isArray) {
+//         return response
+//     }
+//
+//     return response.reduce(
+//         (previousValue, currentValue) => {
+//             return Object.assign(previousValue, currentValue)
+//         }, {})
+// }
 
 
 //
 //
 // let key = item.label.split(': ')[0]
 // if (item.items) {
-//     debugger
+//     
 //     const result = item.items.map((_item) => transformShape2JSON(_item)).reduce(
 //         (previousValue, currentValue) => {
 //             return Object.assign(previousValue, currentValue)
