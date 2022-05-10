@@ -25,6 +25,8 @@ jobs:
           registry-url: https://npm.pkg.github.com/
       - name: Complete installation
         run: npm install
+        env:
+          GIT_NPM_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Build
         run: npm run build
       #- name: Test
