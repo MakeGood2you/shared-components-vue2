@@ -1,6 +1,15 @@
 export default {
-  InputRecordName:'kobikbo',
-  backOffice: {
+  InputRecordName:'input JSON',
+  outputRecordName:'input JSON',
+  MappingSchema:'Mapping Schema',
+  change:'Change',
+  remove:'Remove',
+  confirm:'Confirm',
+  cancel: 'Cancel',
+  messages: {
+    deleteLink: 'Are you sure you want to delete this link ?',
+    replaceLink: 'Are you sure you want to replace this ?',
+  },
     header: 'Back Office',
 
     labels: {
@@ -32,7 +41,6 @@ export default {
       data: 'data',
       close: 'Close',
       save: 'Save',
-      cancel: 'Cancel',
       show: 'SHOW',
       clear: 'CLEAR',
 
@@ -66,12 +74,6 @@ export default {
       noPasswordData: 'Please enter your password',
       notValidPasswordLength: 'Password must be at least 6 characters.',
       notValidEmail: 'Invalid email address.',
-    },
-
-    messages: {
-      selectLeastOfOne: 'You must select at least one of the following options:',
-      emailHasBeenSent: 'An email has been sent to {email} with instructions to reset your password.',
-      NoDataAvailable: 'No data available',
     },
 
     login: {
@@ -198,5 +200,5 @@ export default {
       deleteConfirmMessage: 'Are you sure you want to delete this layer?',
       updatePoi: 'Poi was uploaded successfully'
     }
-  },
+
 }

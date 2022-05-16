@@ -1,4 +1,4 @@
-import { g, anchors } from '@clientio/rappid';
+import { g, anchors } from '@OtailO-recommerce/rappid';
 
 const mapping = function (view, magnet, ref) {
     let anchor;

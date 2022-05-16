@@ -1,4 +1,4 @@
-import { dia } from '@clientio/rappid';
+import { dia } from '@OtailO-recommerce/rappid';
 
 export const Decorator = dia.HighlighterView.extend({
     

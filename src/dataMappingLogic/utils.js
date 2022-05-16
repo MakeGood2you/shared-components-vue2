@@ -1,4 +1,4 @@
-import { ui } from '@clientio/rappid/';
+import { ui } from '@OtailO-recommerce/rappid/';
 
 
 // options example

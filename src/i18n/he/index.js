@@ -1,6 +1,15 @@
 export default {
-  InputRecordName:'קוביקובי',
-
+  InputName:'מסמך נכנס',
+  outputName:'מסמך יוצא',
+  MappingSchema:'מיפוי המסמך',
+  change:'שנה',
+  remove:'מחק',
+  confirm:'מאשר',
+  cancel: 'ביטול',
+  messages: {
+    deleteLink: 'אתה בטוח שאתה רוצה למחוק את הלינק ?',
+    replaceLink: 'אתה בטוח שאתה רוצה להחליף את הלינק ?',
+  },
   backOffice: {
     header: 'מערכת ניהול',
 
@@ -31,7 +40,6 @@ export default {
 
       data: 'מידע',
       close: 'סגור',
-      cancel: 'ביטול',
       show: 'חיפוש',
       clear: 'נקה',
 
@@ -67,11 +75,7 @@ export default {
       notValidEmail: 'סיסמא חייבת להיות לפחות בת 6 תווים.',
     },
 
-    messages: {
-      selectLeastOfOne: 'עליך לבחור לפחות אחת מהאפשרויות הבאות:',
-      emailHasBeenSent: 'דוא"ל נשלח אל {email} עם הוראות לאיפוס הסיסמה שלך.',
-      NoDataAvailable: 'אין נתונים זמינים',
-    },
+
 
     login: {
       title: 'התחברות',

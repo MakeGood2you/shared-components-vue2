@@ -24,7 +24,7 @@
     "build:unpkg": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format iife"
   },
   "dependencies": {
-    "@clientio/rappid": "file:./rappid.tgz",
+    "@OtailO-recommerce/rappid": "^1.5.1",
     "@vue/test-utils": "^2.0.0-rc.21",
     "vue-i18n": "^8.11.2"
   },

@@ -16,7 +16,7 @@ const loadExample = function (graph, shapes, options) {
         items: [
             shapes.inputShape,
         ],
-    }).setName(i18nMixin.methods.t('InputRecordName'))
+    }).setName(i18nMixin.methods.t('InputName'))
         .position(100, 200)
         .addTo(graph)
 
@@ -24,7 +24,7 @@ const loadExample = function (graph, shapes, options) {
         items: [
             shapes.objectMapperShape,
         ],
-    }).setName('Mapping Schema')
+    }).setName(i18nMixin.methods.t('MappingSchema'))
         .position(550, 100)
         .addTo(graph)
 
@@ -37,7 +37,7 @@ const loadExample = function (graph, shapes, options) {
             shapes.outputShape,
         ],
     })
-        .setName('output JSON')
+        .setName(i18nMixin.methods.t('outputName'))
         .position(900, 200)
         .addTo(graph)
 
@@ -51,7 +51,6 @@ const loadExample = function (graph, shapes, options) {
     links = links.concat(createLinks(ObjectMapperRecord, OutputRecord, options.objectMapperToOutput, graph))
     // Array.prototype.push.apply(links, createOutputLinks())
     links.forEach(function (link) {
-
         link.addTo(graph)
     })
 }

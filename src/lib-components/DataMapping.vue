@@ -4,7 +4,7 @@
 
 <script>
 
-import { dia, elementTools, setTheme, shapes, ui, util } from '@clientio/rappid';
+import { dia, elementTools, setTheme, shapes, ui, util } from '@OtailO-recommerce/rappid';
 import { Link } from '../dataMappingLogic/shapes';
 import { Decorator } from '../dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
@@ -14,7 +14,7 @@ import { loadExample, records } from '../dataMappingLogic/example';
 // import { dialog } from '../dataMappingLogic/utils';
 import { chekLinksRules } from '../dataMappingLogic/recordsRules';
 import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
-import { getLanguage } from '../services/i18n.vue.mixin';
+import i18n, { getLanguage } from '../services/i18n.vue.mixin';
 import init, {
   objectMapperSchemaShape2Schema,
   transformJSON2Shape,
@@ -74,23 +74,26 @@ export default Vue.extend({
         buttons.forEach(button => {
           switch (button) {
             case 'cancel':
-              result.push({ content: 'Cancel', action: 'cancel' })
+              result.push({
+                content: `${i18n.methods.t('cancel')}`,
+                action: 'cancel'
+              })
               break
             case 'change':
               result.push({
-                content: '<span style="color:#fe854f">Change</span>',
+                content: `<span style="color:#fe854f">${i18n.methods.t('change')}</span>`,
                 action: 'change'
               })
               break
             case 'remove' :
               result.push({
                 action: 'remove',
-                content: '<span style="color:#fe854f">Remove</span>'
+                content: `<span style="color:#fe854f">${i18n.methods.t('remove')}</span>`
               })
               break
             case 'confirm':
               result.push({
-                content: '<span style="color:#fe854f">Confirm</span>',
+                content: `<span style="color:#fe854f">${i18n.methods.t('confirm')}</span>`,
                 action: 'confirm'
               })
           }
@@ -127,7 +130,7 @@ export default Vue.extend({
 
       const dialog = this.createDialog({
         title: 'Confirmation',
-        content: 'Are you sure you want to delete this link?',
+        content: `${i18n.methods.t('messages.deleteLink')}`,
         buttons: ['cancel', 'remove']
       })
 
@@ -383,7 +386,7 @@ export default Vue.extend({
             width: 300,
             title: 'Confirmation',
             closeButton: false,
-            content: 'Are you sure you want to replace this ?',
+            content: `${i18n.methods.t('messages.replaceLink')}`,
             buttons: ['cancel', 'confirm']
           });
 
@@ -771,11 +774,12 @@ export default Vue.extend({
   },
 
   created() {
-    this.start(this.objectMapperSchema, this.inputJson, this.outputJson)
     getLanguage(this.lang)
+    this.start(this.objectMapperSchema, this.inputJson, this.outputJson)
   },
 
   mounted() {
+
     const { scroller, paper, $refs: { canvas } } = this;
     canvas.appendChild(this.scroller.el);
 
@@ -824,7 +828,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import "~@clientio/rappid/rappid.css";
+@import "~@OtailO-recommerce/rappid/rappid.css";
 @import '../dataMappingLogic/styles.scss';
 
 .canvas {

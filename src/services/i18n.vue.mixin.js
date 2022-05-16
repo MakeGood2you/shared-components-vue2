@@ -16,6 +16,7 @@ const i18n = new VueI18n({
     fallbackLocale: locale,
     messages: Languages // set locale messages
 });
+
 export function getLanguage(lang) {
     locale = lang ? lang : locale
     i18n.locale = lang
