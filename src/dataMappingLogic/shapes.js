@@ -1,5 +1,5 @@
 import { shapes, util } from '@OtailO-recommerce/rappid';
-import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
+import { _replaceAll, cutStringFromSymbol, createKeyValueString } from '../utils/strings';
 
 export class Link extends shapes.standard.Link {
     defaults() {
@@ -23,37 +23,6 @@ export class Link extends shapes.standard.Link {
         }, super.defaults);
     }
 
-}
-
-export class LinkUtils {
-    createLinks(sourceShape, targetShape, source2TargetInstance) {
-        const links = []
-        source2TargetInstance.map(link => {
-            links.push(
-                new Link({
-                    source: { id: sourceShape.id, port: link.source },
-                    target: { id: targetShape.id, port: link.target },
-                }),
-            )
-        })
-        return links
-    }
-    createHashLinks(sourceShape, targetShape, source2TargetInstance) {
-        const bySource = {}
-        const byTarget = {}
-        source2TargetInstance.map(data => {
-            const link = new Link({
-                source: { id: sourceShape.id, port: data.source },
-                target: { id: targetShape.id, port: data.target },
-            })
-            bySource[data.source] = link
-            byTarget[data.target] = link
-        })
-        return {
-            bySource,
-            byTarget
-        }
-    }
 }
 
 export class Record extends shapes.standard.HeaderedRecord {
@@ -89,7 +58,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         return values
     }
 
-    defaults(items) {
+    defaults() {
         return util.defaultsDeep({
             type: 'mapping.Record',
             itemHeight: 20,
@@ -191,12 +160,12 @@ export class Record extends shapes.standard.HeaderedRecord {
     }
 
     getDefaultItem(itemId, element) {
-        const item = element.item(itemId);
+        const item = itemId && element ? element.item(itemId) : '';
         return {
-            id: this.getNewItemId(itemId),
+            id: itemId ? this.getNewItemId(itemId) : util.uuid(),
             label: 'new_item',
-            icon: item.icon,
-            _type: item._type
+            icon: item.icon || "mapper/document.svg",
+            _type: item._type || "Leaf"
         };
     }
 
@@ -245,58 +214,23 @@ export class Record extends shapes.standard.HeaderedRecord {
     }
 }
 
-export class MappingRecord extends Record {
-    constructor(allowedTools, attributes) {
+export class ObjectMapperRecord extends Record {
+    // mappingSchema = {}
+
+    constructor(allowedTools, schema) {
+        const attributes = {
+            items: [
+                [ObjectMapperRecord.objectMapperSchema2Shape(schema)]
+            ]
+        }
         super(allowedTools, attributes);
-    }
-    //create instance links
-    createObjectMapper2OutputInstance(objectMapperShape, outputShape) {
-
-        const objectMapperIds = this.getValuesFromShape(objectMapperShape)
-        const outputIds = this.getValuesFromShape(outputShape)
-
-        const result = []
-        objectMapperIds.forEach((source) => {
-            const index = source.indexOf('.')
-            if (index >= 0) {
-
-                const target = source.substring(index + 1)
-
-                if (outputIds.includes(target)) {
-                    const link = {
-                        source,
-                        target,
-                    }
-                    result.push(link)
-                }
-            }
-        })
-        return result
-    }
-
-    //create instance links
-    createInput2ObjectMapperInstance(objectMapperShape, inputShape) {
-        const objectMapperIds = this.getValuesFromShape(objectMapperShape, ['_absPath', 'id'])
-        const inputIds = this.getValuesFromShape(inputShape)
-        const result = []
-        objectMapperIds.map((link) => {
-            let source = cutStringFromSymbol(link['_absPath'], '.')
-
-            source = _replaceAll(source, '[*]', '[0]')
-            if (inputIds.includes(source)) {
-                result.push({
-                    source,
-                    target: link['id'],
-                })
-            }
-        })
-        return result
+        // this.mappingSchema = schema
     }
 
     objectMapperSchemaShape2Schema(shape) {
         switch (shape._type) {
             case 'Object':
-                const result = shape.items.map((_item) => objectMapperSchemaShape2Schema(_item)).reduce(
+                const result = shape.items.map((_item) => this.objectMapperSchemaShape2Schema(_item)).reduce(
                     (previousValue, currentValue) => {
                         return Object.assign(previousValue, currentValue)
                     }, {})
@@ -312,7 +246,7 @@ export class MappingRecord extends Record {
             case'Array':
                 return {
                     [shape.label]: {
-                        _element: shape.items.map((item) => objectMapperSchemaShape2Schema(item)).reduce(
+                        _element: shape.items.map((item) => this.objectMapperSchemaShape2Schema(item)).reduce(
                             (previousValue, currentValue) => {
                                 return Object.assign(previousValue, currentValue)
                             }, { ...shape.elementAttributes }),
@@ -338,7 +272,7 @@ export class MappingRecord extends Record {
 
     }
 
-    objectMapperSchema2Shape(schema, label = '$root', path = '') {
+    static objectMapperSchema2Shape(schema, label = '$root', path = '') {
         let result = null
 
         switch (schema._type) {
@@ -393,13 +327,51 @@ export class MappingRecord extends Record {
         return result
     }
 
-}
+    //create instance links
+    createObjectMapper2OutputInstance(objectMapperShape, outputShape) {
 
-export class objectMapperEditor extends MappingRecord {
-    constructor(allowedTools, attributes) {
-        super(allowedTools, attributes);
+        const objectMapperIds = this.getValuesFromShape(objectMapperShape)
+        const outputIds = this.getValuesFromShape(outputShape)
+
+        const result = []
+        objectMapperIds.forEach((source) => {
+            const index = source.indexOf('.')
+            if (index >= 0) {
+
+                const target = source.substring(index + 1)
+
+                if (outputIds.includes(target)) {
+                    const link = {
+                        source,
+                        target,
+                    }
+                    result.push(link)
+                }
+            }
+        })
+        return result
     }
-    getObjectMapperInspectorConfig() {
+
+    //create instance links
+    createInput2ObjectMapperInstance(objectMapperShape, inputShape) {
+        const objectMapperIds = this.getValuesFromShape(objectMapperShape, ['_absPath', 'id'])
+        const inputIds = this.getValuesFromShape(inputShape)
+        const result = []
+        objectMapperIds.map((link) => {
+            let source = cutStringFromSymbol(link['_absPath'], '.')
+
+            source = _replaceAll(source, '[*]', '[0]')
+            if (inputIds.includes(source)) {
+                result.push({
+                    source,
+                    target: link['id'],
+                })
+            }
+        })
+        return result
+    }
+
+    getInspectorConfig() {
         return {
             label: {
                 label: 'Label',
@@ -444,29 +416,22 @@ export class objectMapperEditor extends MappingRecord {
 
         }
     }
-
 }
 
 export class JsonRecord extends Record {
-    constructor(allowedTools, attributes) {
-        super(allowedTools, attributes);
-    }
+    // JSON = {}
 
-    createKeyValueString(key, value) {
-        if (!key) key = 'none'
-        if (!value) value = ''
-        if (!['Array', 'Object'].includes(value.constructor.name))
-            return `${key}: ${value.toString()}`
-        else if (value.constructor.name === 'Object')
-            return `${key}`
-        else if (value.constructor.name === 'Array')
-            return `${key}`
-        else {
-
+    constructor(allowedTools, JSON) {
+        const attributes = {
+            items: [
+                JsonRecord.transformJSON2Shape(JSON)
+            ]
         }
+        super(allowedTools, attributes);
+        // this.JSON = JSON
     }
 
-    transformJSON2Shape(obj, path = '') {
+    static transformJSON2Shape(obj, path = '') {
         if (obj && typeof obj === 'object') {
             const isArray = Array.isArray(obj)
 
@@ -474,7 +439,7 @@ export class JsonRecord extends Record {
 
                 const _key = isArray ? `[${key}]` : key
 
-                const label = this.createKeyValueString(key, obj[key])
+                const label = createKeyValueString(key, obj[key])
 
                 const items = this.transformJSON2Shape(obj[key], path + _key + '.')
 
@@ -498,7 +463,7 @@ export class JsonRecord extends Record {
         }
     }
 
-    getJSONInspectorConfig() {
+    getInspectorConfig() {
         return {
             label: {
                 label: 'Label',
@@ -536,7 +501,7 @@ export class JsonRecord extends Record {
 
     transformShape2JSON(shape) {
         if (!Array.isArray(shape)) {
-            const value = shape.value ?? this.transformShape2JSON(shape.items)
+            const value = shape.value === null || shape.value === undefined ? this.transformShape2JSON(shape.items) : shape.value
             return shape.isArray ? value : { [shape.key]: value }
         }
         const response = shape.map(_item => this.transformShape2JSON(_item))
@@ -550,17 +515,18 @@ export class JsonRecord extends Record {
                 return Object.assign(previousValue, currentValue)
             }, {})
     }
+
 }
 
-export class inputJson extends JsonRecord {
-    constructor(allowedTools, attributes) {
-        super(allowedTools, attributes);
+export class InputRecord extends JsonRecord {
+    constructor(allowedTools, JSON) {
+        super(allowedTools, JSON);
     }
 }
 
-export class outputJson extends JsonRecord {
-    constructor(allowedTools, attributes) {
-        super(allowedTools, attributes);
+export class OutputRecord extends JsonRecord {
+    constructor(allowedTools, JSON) {
+        super(allowedTools, JSON);
     }
 }
 

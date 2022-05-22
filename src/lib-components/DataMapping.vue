@@ -5,26 +5,13 @@
 <script>
 
 import { dia, elementTools, setTheme, shapes, ui, util } from '@OtailO-recommerce/rappid';
-import { Link } from '../dataMappingLogic/shapes';
+import { InputRecord, Link, ObjectMapperRecord, OutputRecord } from '../dataMappingLogic/shapes';
 import { Decorator } from '../dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
 import { routerNamespace } from '../dataMappingLogic/routers';
 import { anchorNamespace } from '../dataMappingLogic/anchors';
-import { loadExample, records, links, hashLinks } from '../dataMappingLogic/example';
-// import { dialog } from '../dataMappingLogic/utils';
-import { chekLinksRules } from '../dataMappingLogic/recordsRules';
 import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
 import i18n, { getLanguage } from '../services/i18n.vue.mixin';
-import init, {
-  objectMapperSchemaShape2Schema,
-  transformJSON2Shape,
-  objectMapperSchema2Shape,
-  createObjectMapper2OutputInstance,
-  createInput2ObjectMapperInstance,
-  createLinks,
-  createNewLinks, getValuesFromShape, createHashLinks
-} from '../dataMappingLogic/init'
-
 
 import Vue from 'vue';
 
@@ -46,15 +33,16 @@ export default Vue.extend({
       type: Object,
       required: true
     },
+
     isLiveUpdate: {
       type: Boolean,
       default: true
     },
+
     lang: {
       type: String,
       default: 'en-US'
     },
-
   },
 
   data: () => ({
@@ -66,9 +54,385 @@ export default Vue.extend({
     paper: dia.Paper,
     scroller: ui.PaperScroller,
     toolbarHeight: 50,
-    commandManager: dia.CommandManager
+    commandManager: dia.CommandManager,
+
+    //Records instance
+    InputRecord: {},
+    OutputRecord: {},
+    ObjectMapperRecord: {},
+
+    //ALL Links in graph
+    links: [],
   }),
   methods: {
+    showElementTools(elementView) {
+      const element = elementView.model;
+      const padding = util.normalizeSides(element.get('padding'));
+      const isScrollable = (element.get('type') === 'mapping.Record');
+      const transform = new ui.FreeTransform({
+        cellView: elementView,
+        allowRotation: false,
+        resizeDirections: (isScrollable)
+            ? ['top-left', 'top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left']
+            : ['left', 'right'],
+        minWidth: function () {
+          return element.getMinimalSize().width;
+        },
+        minHeight: (isScrollable)
+            ? padding.top + padding.bottom
+            : 0
+      });
+      transform.render();
+    },
+
+    itemActionPicker(target, elementView, itemId, tools) {
+
+      const element = elementView.model;
+      const toolbar = new ui.ContextToolbar({
+        target: target,
+        padding: 5,
+        vertical: true,
+        tools: tools
+      });
+
+      toolbar.render();
+      toolbar.on({
+        'action:remove': function () {
+          element.startBatch('item-remove');
+          element.removeItem(itemId);
+          element.removeInvalidLinks();
+          element.stopBatch('item-remove');
+          toolbar.remove();
+          this.liveUpdateSchema()
+        }.bind(this),
+        'action:edit': function () {
+          toolbar.remove();
+          this.itemEditAction(element, itemId);
+        }.bind(this),
+        'action:add-child': function () {
+          toolbar.remove();
+          element.addItemAtIndex(itemId, Infinity, element.getDefaultItem());
+          if (element.isItemCollapsed(itemId))
+            element.toggleItemCollapse(itemId);
+        },
+        'action:add-next-sibling': function () {
+          toolbar.remove();
+          element.addNextSibling(itemId, element.getDefaultItem(itemId, element));
+        },
+        'action:add-prev-sibling': function () {
+          toolbar.remove();
+          element.addPrevSibling(itemId, element.getDefaultItem(itemId, element));
+        },
+        'action:edit-decorator': function () {
+          toolbar.remove();
+          this.itemDecoratorEditAction(element, itemId);
+        }.bind(this)
+      });
+    },
+
+    elementActionPicker(target, elementView, tools) {
+
+      const element = elementView.model;
+      const toolbar = new ui.ContextToolbar({
+        target: target.firstChild,
+        padding: 5,
+        vertical: true,
+        tools: tools
+      });
+
+      toolbar.render();
+      toolbar.on({
+        'action:remove': function () {
+          toolbar.remove();
+          element.remove();
+        },
+        'action:add-item': function () {
+          toolbar.remove();
+          element.addItemAtIndex(0, Infinity, element.getDefaultItem());
+        }
+      });
+    },
+
+    itemDecoratorEditAction(element, itemId) {
+      const config = { [itemId]:{
+        transformerCode: {
+          type: 'textarea', label: 'Decorator' }
+      }};
+      const path = ['decorators'];
+      const item = element.item(itemId)
+      this.itemAction(element, config, path);
+    },
+
+    itemEditAction(element, itemId) {
+      let config = element.getInspectorConfig(itemId);
+      const path = element.getItemPathArray(itemId);
+      this.itemAction(element, config, path);
+    },
+
+    itemAction(element, config, itemPath) {
+
+      if (!config || !itemPath) return;
+
+      const inspector = new ui.Inspector({
+        cell: element,
+        live: false,
+        inputs: util.setByPath({}, itemPath, config)
+      });
+      inspector.render();
+      inspector.el.style.position = 'relative';
+      inspector.el.style.overflow = 'hidden';
+      const dialog = this.createDialog({
+        width: 300,
+        title: 'Edit Item',
+        closeButton: true,
+        content: inspector.el,
+        buttons: ['cancel', 'change']
+      });
+
+      dialog.open();
+      dialog.on({
+        'action:cancel': function () {
+          inspector.remove();
+          dialog.close();
+        }.bind(this),
+        'action:change': function () {
+          const prevItem = this.getItemByPath(element.attributes.items, [...itemPath])
+          inspector.updateCell();
+          const item = this.getItemByPath(element.attributes.items, [...itemPath])
+          console.log(item)
+          if (prevItem.label !== item.label) {
+            item.id = element.getNewItemId(item.id, item.label)
+            element.item(prevItem.id, item)
+          }
+          if (!item.hasDefault) {
+            item._default = undefined
+            element.item(item.id, item)
+          }
+
+          const targetLink = this.getLinkByTargetPort(this.ObjectMapperRecord, item.id)
+          const sourceLink = this.getLinkBySourcePort(this.ObjectMapperRecord, item.id)
+          console.log(prevItem)
+          console.log(sourceLink)
+          if (!item._path) {
+            if (targetLink
+                && sourceLink
+                && targetLink.isLink()
+                && sourceLink.isLink()) {
+
+              targetLink.remove()
+              sourceLink.remove()
+            }
+          }
+          if (item._path
+              && targetLink
+              && targetLink.isLink()
+              && item._path !== prevItem._path) {
+
+            targetLink.remove()
+
+          }
+          this.liveUpdateSchema()
+          inspector.remove();
+          dialog.close();
+        }.bind(this)
+      });
+
+      const input = inspector.el.querySelector('[contenteditable]');
+      if (input) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(input);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    },
+
+    getItemByPath(items, path) {
+      const item = items
+      if (path.length <= 1) {
+        return item
+      }
+      path.shift()
+      return this.getItemByPath(items[path[0]], path)
+    },
+
+    createLink(graph, link, sourceShape, targetShape) {
+      const newLink = new Link({
+        source: { id: sourceShape.id, port: link.source },
+        target: { id: targetShape.id, port: link.target },
+      })
+      newLink.addTo(graph)
+    },
+
+    editRecord(element, linkView, itemId, updateData, eventName) {
+      if (!itemId) return;
+      const item = element.item(itemId)
+
+      if (eventName === 'connect') {
+        if (item._path) {
+          const inspector = new ui.Inspector({
+            cell: element,
+            live: false,
+          });
+          inspector.render();
+          inspector.el.style.position = 'relative';
+          inspector.el.style.overflow = 'hidden';
+
+          const dialog = this.createDialog({
+            width: 300,
+            title: 'Confirmation',
+            closeButton: false,
+            content: `${i18n.methods.t('messages.replaceLink')}`,
+            buttons: ['cancel', 'confirm']
+          });
+
+          dialog.open();
+          dialog.on({
+            'action:cancel': function () {
+              this.commandManager.undo()
+              inspector.remove();
+              dialog.close();
+            }.bind(this),
+            'action:confirm': function () {
+              this.removeSourceLinkByTargetPort(linkView.sourceView.model, itemId)
+              this.editObjectMapperRecord(itemId, updateData)
+              inspector.remove();
+              dialog.close();
+            }.bind(this)
+          });
+        } else {
+          // if no _path
+          const link = {
+            source: itemId,
+            target: cutStringFromSymbol(itemId, '.')
+
+          }
+          this.createLink(this.graph, link, this.ObjectMapperRecord, this.OutputRecord)
+          this.editObjectMapperRecord(itemId, updateData)
+        }
+        // if eventName === disconnect
+      } else {
+        this.removeTargetLinkBySourcePort(element, itemId)
+        updateData = this.updateProperties(updateData, item)
+        element.item(itemId, updateData) // change the shape
+      }
+    },
+
+    updateProperties(updateData, item) {
+      for (const key in updateData) {
+        if (!updateData[key]) {
+          item[key] = undefined
+        } else {
+          item[key] = updateData[key]
+        }
+      }
+      return item
+    },
+
+    updateItem(element, itemId, updateData) {
+      if (updateData) {
+        element.item(itemId, updateData) // change the shape
+      }
+
+      if (element.id === this.ObjectMapperRecord.id) {
+        this.liveUpdateSchema()
+      }
+    },
+
+    editObjectMapperRecord(targetId, updateData) {
+      let ObjectMapperRecord = this.ObjectMapperRecord
+
+      const item = ObjectMapperRecord.item(targetId)
+
+      updateData ? this.updateProperties(updateData, item) : item._path = undefined
+
+      this.updateItem(ObjectMapperRecord, targetId, item)
+    },
+
+    liveUpdateSchema() {
+      if (!this.isLiveUpdate) return
+      const schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
+
+      this.$emit('mapObject', {
+        schema: schema.$root,
+        input: this.inputJson,
+      })
+    },
+    // LINKS RULES
+    checkLinksRules(eventName, linkView, element, arrowhead) {
+      const checkRecordLinkConnection = (linkView, element, logs = []) => {
+        const validation = { isValid: false, logs }
+
+        const targetId = linkView.model.attributes.target.id
+        const sourceId = linkView.model.attributes.source.id
+
+        // input record
+        // if target is inputRecord is not valid
+        if (targetId === this.InputRecord.id) return validation
+        // validation.logs.push(['Not Allowed to connect', ' element.id === records.InputRecord'])
+
+        // output record
+        // if target is outputRecord is not valid
+        if (targetId === this.OutputRecord.id) return validation
+        // validation.logs.push(['Not Allowed to connect', 'element.id === records.OutputRecord.id'])
+
+        //object mapper record
+        //if source is outputRecord is not valid
+        if (sourceId === this.OutputRecord.id) return validation
+        // validation.logs.push(['Not Allowed to connect', 'element.id === records.ObjectMapperRecord.id'])
+
+        //object mapper record
+        //if source is ObjectMapperRecord is not valid
+        if (sourceId === this.ObjectMapperRecord.id) return validation
+        // validation.logs.push(['Not Allowed to connect', ' element.id === records.ObjectMapperRecord.id'])
+
+        if ((sourceId === this.ObjectMapperRecord.id) && (targetId === this.OutputRecord.id)) return validation
+        // validation.logs.push(['Not Allowed to pass', 'linkView.model.attributes.target.id !== records.OutputRecord.id', 'linkView.model.attributes.source.id !== records.ObjectMapperRecord.id'])
+
+
+        validation.isValid = true
+        return validation
+      }
+      const checkRecordLinkDisconnect = (linkView, element, arrowhead, logs = []) => {
+        const validation = { isValid: false, logs }
+        if (arrowhead !== 'source') {
+          validation.isValid = true
+          return validation
+        }
+
+        if (element.id !== this.InputRecord.id) {
+          validation.isValid = true
+          return validation
+        }
+
+        if (linkView.model._previousAttributes.source.port !== linkView.model.attributes.source.port) {
+          // validation.logs.push(['Not Allowed to pass', '_previousAttributes.source.port !== attributes.source.port',])
+          validation.isValid = false
+          return validation
+        }
+      }
+
+      switch (eventName) {
+        case 'link:mousewheel':
+          return true
+
+        case 'link:connect':
+          return checkRecordLinkConnection(linkView, element, arrowhead)
+
+        case 'link:disconnect':
+          return checkRecordLinkDisconnect(linkView, element, arrowhead)
+
+        case 'link:pointerclick':
+          return checkRecordLinkConnection(linkView)
+
+        case 'link:mouseenter':
+          return checkRecordLinkConnection(linkView)
+
+        case 'link:mouseleave':
+          return true
+      }
+    },
+    // Create Dialog
     createDialog(options) {
       const _createButtons = (buttons) => {
         const result = []
@@ -147,7 +511,7 @@ export default Vue.extend({
           //remove the target link
           link.remove();
           // remove the source link
-          this.removeTargetLinkBySourcePort(records.outputRecord, link.attributes.target.port)
+          this.removeTargetLinkBySourcePort(this.OutputRecord, link.attributes.target.port)
 
           this.editObjectMapperRecord(link.attributes.target.port)
 
@@ -169,18 +533,39 @@ export default Vue.extend({
       return connectedLinks.find(link => link.attributes.target.port === id)
     },
 
-    // getTargetAndSourceLinks(element, id) {
-    //   const result = {}
-    //   const connectedLinks = this.graph.getConnectedLinks(element)
-    //   connectedLinks.forEach(link => {
-    //     if (link.attributes.target.port === id) result.target = link
-    //     if (link.attributes.source.port === id) result.source = link
-    //   })
-    //   return result
-    // },
-
     removeLinks(links) {
       return links.forEach(link => link.remove())
+    },
+    // create list of links
+    createLinks(sourceShape, targetShape, source2TargetInstance, isAddToGraph = false, linksTarget = undefined) {
+      let links = []
+      source2TargetInstance.map(linkInstance => {
+        const link = new Link({
+          source: { id: sourceShape.id, port: linkInstance.source },
+          target: { id: targetShape.id, port: linkInstance.target },
+        })
+        links.push(link)
+        if (isAddToGraph) link.addTo(this.graph)
+      })
+
+      return linksTarget ? links = links.concat(links, linksTarget) : links
+    },
+    // create hash links /// by target && by source ///
+    createHashLinks(sourceShape, targetShape, source2TargetInstance) {
+      const bySource = {}
+      const byTarget = {}
+      source2TargetInstance.map(data => {
+        const link = new Link({
+          source: { id: sourceShape.id, port: data.source },
+          target: { id: targetShape.id, port: data.target },
+        })
+        bySource[data.source] = link
+        byTarget[data.target] = link
+      })
+      return {
+        bySource,
+        byTarget
+      }
     },
 
     removeSourceLinkByTargetPort(sourceView, targetPort) {
@@ -203,306 +588,6 @@ export default Vue.extend({
         debugger
         console.error('NOT valid Link || no link found')
       }
-    },
-
-    showElementTools(elementView) {
-      const element = elementView.model;
-      const padding = util.normalizeSides(element.get('padding'));
-      const isScrollable = (element.get('type') === 'mapping.Record');
-      const transform = new ui.FreeTransform({
-        cellView: elementView,
-        allowRotation: false,
-        resizeDirections: (isScrollable)
-            ? ['top-left', 'top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left']
-            : ['left', 'right'],
-        minWidth: function () {
-          return element.getMinimalSize().width;
-        },
-        minHeight: (isScrollable)
-            ? padding.top + padding.bottom
-            : 0
-      });
-      transform.render();
-    },
-
-    itemActionPicker(target, elementView, itemId, tools) {
-
-      const element = elementView.model;
-      const toolbar = new ui.ContextToolbar({
-        target: target,
-        padding: 5,
-        vertical: true,
-        tools: tools
-      });
-
-      toolbar.render();
-      toolbar.on({
-        'action:remove': function () {
-          element.startBatch('item-remove');
-          element.removeItem(itemId);
-          element.removeInvalidLinks();
-          element.stopBatch('item-remove');
-          toolbar.remove();
-        },
-        'action:edit': function () {
-          toolbar.remove();
-          this.itemEditAction(element, itemId);
-        }.bind(this),
-        'action:add-child': function () {
-          toolbar.remove();
-          element.addItemAtIndex(itemId, Infinity, element.getDefaultItem());
-          if (element.isItemCollapsed(itemId))
-            element.toggleItemCollapse(itemId);
-        },
-        'action:add-next-sibling': function () {
-          toolbar.remove();
-          element.addNextSibling(itemId, element.getDefaultItem(itemId, element));
-        },
-        'action:add-prev-sibling': function () {
-          toolbar.remove();
-          element.addPrevSibling(itemId, element.getDefaultItem());
-        },
-        'action:edit-decorator': function () {
-          toolbar.remove();
-          this.itemDecoratorEditAction(element, itemId);
-        }.bind(this)
-      });
-    },
-
-    elementActionPicker(target, elementView, tools) {
-
-      const element = elementView.model;
-      const toolbar = new ui.ContextToolbar({
-        target: target.firstChild,
-        padding: 5,
-        vertical: true,
-        tools: tools
-      });
-
-      toolbar.render();
-      toolbar.on({
-        'action:remove': function () {
-          toolbar.remove();
-          element.remove();
-        },
-        'action:add-item': function () {
-          toolbar.remove();
-          element.addItemAtIndex(0, Infinity, element.getDefaultItem());
-        }
-      });
-    },
-
-    itemDecoratorEditAction(element, itemId) {
-      const config = { [itemId]: { type: 'content-editable', label: 'Decorator' } };
-      const path = ['decorators'];
-      this.itemAction(element, config, path);
-    },
-
-    itemEditAction(element, itemId) {
-      let config = null
-      if (element.id === records.ObjectMapperRecord.id) {
-        config = element.getObjectMapperInspectorConfig(itemId);
-      } else {
-        config = element.getJSONInspectorConfig(itemId);
-      }
-
-      const path = element.getItemPathArray(itemId);
-      this.itemAction(element, config, path);
-    },
-
-    itemAction(element, config, itemPath) {
-
-      if (!config || !itemPath) return;
-
-      const inspector = new ui.Inspector({
-        cell: element,
-        live: false,
-        inputs: util.setByPath({}, itemPath, config)
-      });
-      inspector.render();
-      inspector.el.style.position = 'relative';
-      inspector.el.style.overflow = 'hidden';
-      const dialog = this.createDialog({
-        width: 300,
-        title: 'Edit Item',
-        closeButton: true,
-        content: inspector.el,
-        buttons: ['cancel', 'change']
-      });
-
-      dialog.open();
-      dialog.on({
-        'action:cancel': function () {
-          inspector.remove();
-          dialog.close();
-        }.bind(this),
-        'action:change': function () {
-          const prevItem = this.getItemByPath(element.attributes.items, [...itemPath])
-          inspector.updateCell();
-          const item = this.getItemByPath(element.attributes.items, [...itemPath])
-          console.log(item)
-          if (prevItem.label !== item.label) {
-            item.id = element.getNewItemId(item.id, item.label)
-            element.item(prevItem.id, item)
-            debugger
-          }
-          if (!item.hasDefault) {
-            item._default = undefined
-            element.item(item.id, item)
-          }
-
-          const targetLink = this.getLinkByTargetPort(records.ObjectMapperRecord, item.id)
-          const sourceLink = this.getLinkBySourcePort(records.ObjectMapperRecord, item.id)
-          console.log(prevItem)
-          console.log(sourceLink)
-          if (!item._path) {
-            if (targetLink
-                && sourceLink
-                && targetLink.isLink()
-                && sourceLink.isLink()) {
-
-              targetLink.remove()
-              sourceLink.remove()
-            }
-          }
-          if (item._path
-              && targetLink
-              && targetLink.isLink()
-              && item._path !== prevItem._path) {
-
-            targetLink.remove()
-
-          }
-          this.liveUpdateSchema()
-          inspector.remove();
-          dialog.close();
-        }.bind(this)
-      });
-
-      const input = inspector.el.querySelector('[contenteditable]');
-      if (input) {
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(input);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    },
-
-    getItemByPath(items, path) {
-      const item = items
-      if (path.length <= 1) {
-        return item
-      }
-      path.shift()
-      return this.getItemByPath(items[path[0]], path)
-    },
-
-    findRecord(id) {
-      return records.list.findIndex(record => record.id === id)
-    },
-
-    createLink(graph, link, sourceShape, targetShape) {
-      const newLink = new Link({
-        source: { id: sourceShape.id, port: link.source },
-        target: { id: targetShape.id, port: link.target },
-      })
-      newLink.addTo(graph)
-    },
-
-    editRecord(element, linkView, itemId, updateData, eventName) {
-      if (!itemId) return;
-      const item = element.item(itemId)
-
-      if (eventName === 'connect') {
-        if (item._path) {
-          const inspector = new ui.Inspector({
-            cell: element,
-            live: false,
-          });
-          inspector.render();
-          inspector.el.style.position = 'relative';
-          inspector.el.style.overflow = 'hidden';
-
-          const dialog = this.createDialog({
-            width: 300,
-            title: 'Confirmation',
-            closeButton: false,
-            content: `${i18n.methods.t('messages.replaceLink')}`,
-            buttons: ['cancel', 'confirm']
-          });
-
-          dialog.open();
-          dialog.on({
-            'action:cancel': function () {
-              this.commandManager.undo()
-              inspector.remove();
-              dialog.close();
-            }.bind(this),
-            'action:confirm': function () {
-              this.removeSourceLinkByTargetPort(linkView.sourceView.model, itemId)
-              this.editObjectMapperRecord(itemId, updateData)
-              inspector.remove();
-              dialog.close();
-            }.bind(this)
-          });
-        } else {
-          // if no _path
-          const link = {
-            source: itemId,
-            target: cutStringFromSymbol(itemId, '.')
-
-          }
-          this.createLink(this.graph, link, records.ObjectMapperRecord, records.outputRecord)
-          this.editObjectMapperRecord(itemId, updateData)
-        }
-        // if eventName === disconnect
-      } else {
-        this.removeTargetLinkBySourcePort(element, itemId)
-        updateData = this.updateProperties(updateData, item)
-        element.item(itemId, updateData) // change the shape
-      }
-    },
-
-    updateProperties(updateData, item) {
-      for (const key in updateData) {
-        if (!updateData[key]) {
-          item[key] = undefined
-        } else {
-          item[key] = updateData[key]
-        }
-      }
-      return item
-    },
-
-    updateItem(element, itemId, updateData) {
-      if (updateData) {
-        element.item(itemId, updateData) // change the shape
-      }
-
-      if (element.id === records.ObjectMapperRecord.id) {
-        this.liveUpdateSchema()
-      }
-    },
-
-    editObjectMapperRecord(targetId, updateData) {
-      let ObjectMapperRecord = records.ObjectMapperRecord
-
-      const item = ObjectMapperRecord.item(targetId)
-
-      updateData ? this.updateProperties(updateData, item) : item._path = undefined
-
-      this.updateItem(ObjectMapperRecord, targetId, item)
-    },
-
-    liveUpdateSchema() {
-      if (!this.isLiveUpdate) return
-      const schema = objectMapperSchemaShape2Schema(records.ObjectMapperRecord.attributes.items[0][0])
-
-      this.$emit('mapObject', {
-        schema: schema.$root,
-        input: this.inputJson,
-      })
     },
 
     start(objectMapperSchema, inputJson, outputJson) {
@@ -586,7 +671,7 @@ export default Vue.extend({
       });
 
       paper.options.allowLink = (linkView, paper) => {
-        const validation = chekLinksRules('link:connect', linkView, paper.model)
+        const validation = this.checkLinksRules('link:connect', linkView, paper.model)
         return validation.isValid
       }
 
@@ -638,15 +723,29 @@ export default Vue.extend({
 
       commandManager.stopListening();
 
-      const {
-        inputShape,
-        objectMapperShape,
-        outputShape,
-        objectMapperToOutput,
-        inputToObjectMapper
-      } = init(objectMapperSchema, inputJson, outputJson)
+      this.InputRecord = new InputRecord([], this.inputJson)
+          .setName(i18n.methods.t('InputName'))
+          .position(100, 200)
+          .addTo(graph)
+      this.ObjectMapperRecord = new ObjectMapperRecord(
+          ['edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child', 'edit-decorator'],
+          this.objectMapperSchema)
+          .setName(i18n.methods.t('MappingSchema'))
+          .position(550, 100)
+          .addTo(graph)
 
-      loadExample(graph, { inputShape, objectMapperShape, outputShape }, { objectMapperToOutput, inputToObjectMapper })
+      this.OutputRecord = new OutputRecord([], this.outputJson)
+          .setName(i18n.methods.t('outputName'))
+          .position(900, 200)
+          .addTo(graph)
+
+      // Create the instance of links
+      const input2ObjectMapper = this.ObjectMapperRecord.createInput2ObjectMapperInstance(this.ObjectMapperRecord.attributes.items[0], this.InputRecord.attributes.items[0])
+      const objectMapper2Output = this.ObjectMapperRecord.createObjectMapper2OutputInstance(this.ObjectMapperRecord.attributes.items[0], this.OutputRecord.attributes.items[0])
+      const objectMapper2OutputLinks = this.createLinks(this.ObjectMapperRecord, this.OutputRecord, objectMapper2Output, true)
+      const input2ObjectMapperLinks = this.createLinks(this.InputRecord, this.ObjectMapperRecord, input2ObjectMapper, true)
+      this.links = this.links.concat(objectMapper2OutputLinks, input2ObjectMapperLinks)
+      //////////////////// // // // // // // //  // // // // //
 
       commandManager.listen();
 
@@ -669,7 +768,7 @@ export default Vue.extend({
       paper.on('link:connect', (linkView, evt, elementViewConnected, magnet, arrowhead) => {
         const element = elementViewConnected.model;
         const link = linkView.model
-        const validation = chekLinksRules('link:connect', linkView, element, arrowhead)
+        const validation = this.checkLinksRules('link:connect', linkView, element, arrowhead)
         if (!validation.isValid) {
           return
         }
@@ -689,7 +788,7 @@ export default Vue.extend({
       paper.on('link:disconnect', (linkView, evt, elementViewDisconnected, magnet, arrowhead) => {
         const element = elementViewDisconnected.model;
 
-        const validation = chekLinksRules('link:disconnect', linkView, element, arrowhead)
+        const validation = this.checkLinksRules('link:disconnect', linkView, element, arrowhead)
         if (!validation.isValid) {
           return
         }
@@ -705,7 +804,7 @@ export default Vue.extend({
       });
 
       paper.on('link:pointerclick', (linkView, evt, elementView, magnet, arrowhead) => {
-        const validation = chekLinksRules('link:pointerclick', linkView)
+        const validation = this.checkLinksRules('link:pointerclick', linkView)
         if (!validation.isValid) {
           return
         }
@@ -713,7 +812,7 @@ export default Vue.extend({
       });
 
       paper.on('link:mouseenter', (linkView, evt, elementView, magnet, arrowhead) => {
-        const validation = chekLinksRules('link:mouseenter', linkView, evt, elementView, magnet, arrowhead)
+        const validation = this.checkLinksRules('link:mouseenter', linkView, evt, elementView, magnet, arrowhead)
         if (!validation.isValid) {
           return
         }
@@ -721,7 +820,7 @@ export default Vue.extend({
       });
 
       paper.on('link:mouseleave', (linkView) => {
-        // const validation = chekLinksRules('link:mouseleave', linkView)
+        // const validation = checkLinksRules('link:mouseleave', linkView)
         // if (!validation.isValid) {
         //   return
         // }
@@ -729,7 +828,7 @@ export default Vue.extend({
       });
 
       paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
-        if (elementView.model.id === records.outputRecord.id) {
+        if (elementView.model.id === this.OutputRecord.id) {
           return
         }
         evt.stopPropagation();
@@ -796,7 +895,6 @@ export default Vue.extend({
         this.itemDecoratorEditAction(record, itemId);
       });
 
-
       // const isFrozen = paper.isFrozen()
       paper.unfreeze();
 
@@ -809,7 +907,7 @@ export default Vue.extend({
 
   created() {
     getLanguage(this.lang)
-    this.start(this.objectMapperSchema, this.inputJson, this.outputJson)
+    this.start()
   },
 
   mounted() {
@@ -823,14 +921,15 @@ export default Vue.extend({
 
   watch: {
     inputJson(newData, oldData) {
-      const inputRecord = records.InputRecord
+      debugger
+      const newInputRecord = new InputRecord([], newData)
 
-      const newInputRecordItems = transformJSON2Shape(newData)
-      const oldInputRecordItems = inputRecord.attributes.items[0]
+      const newInputRecordItems = newInputRecord.attributes.items[0]
+      const oldInputRecordItems = this.InputRecord.attributes.items[0]
 
-      inputRecord.recordUpdate(oldInputRecordItems, newInputRecordItems)
+      this.InputRecord.recordUpdate(oldInputRecordItems, newInputRecordItems)
 
-      const schema = objectMapperSchemaShape2Schema(records.ObjectMapperRecord.attributes.items[0][0])
+      const schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
         schema: schema.$root,
@@ -839,43 +938,35 @@ export default Vue.extend({
     },
 
     objectMapperSchema(newData, oldData) {
+      debugger
       console.log('newData ===> ', newData)
       console.log('oldData ===> ', oldData)
-
-      const objectMapperRecord = records.ObjectMapperRecord
-      objectMapperRecord.recordUpdate(objectMapperRecord.attributes.items[0], [objectMapperSchema2Shape(newData)])
-
-      const inputRecord = records.InputRecord
-      objectMapperRecord.recordUpdate(inputRecord.attributes.items[0], [objectMapperSchema2Shape(newData)])
+      const newShape = new ObjectMapperRecord([], newData)
+      this.ObjectMapperRecord.recordUpdate(this.ObjectMapperRecord.attributes.items[0], newShape.attributes.items[0])
+      // this.ObjectMapperRecord.recordUpdate(this.InputRecord.attributes.items[0], [this.ObjectMapperRecord.objectMapperSchema2Shape(newData)])
 
       // the new objectMapper record
-      let newObjectMapperSchemaItems = objectMapperRecord.attributes.items[0]
-      const Input2ObjectMapper = createInput2ObjectMapperInstance(newObjectMapperSchemaItems, records.InputRecord.attributes.items[0])
+      let newObjectMapperSchemaItems = this.ObjectMapperRecord.attributes.items[0]
+      const Input2ObjectMapper = this.ObjectMapperRecord.createInput2ObjectMapperInstance(newObjectMapperSchemaItems, this.InputRecord.attributes.items[0])
 
-      this.graph.removeLinks(records.InputRecord)
+      this.graph.removeLinks(this.InputRecord)
 
-      createLinks(records.InputRecord, objectMapperRecord, Input2ObjectMapper)
-          .forEach(link => {
-            link.addTo(this.graph)
-          })
+      this.createLinks(this.InputRecord, this.ObjectMapperRecord, Input2ObjectMapper, true)
     },
 
     outputJson(newData, oldData) {
+      debugger
+      const newOutputRecord = new OutputRecord([], newData)
 
-      const outputRecord = records.outputRecord
+      const newOutputRecordItems = newOutputRecord.attributes.items[0]
+      const oldOutputRecordItems = this.OutputRecord.attributes.items[0]
 
-      const newOutputRecordItems = transformJSON2Shape(newData)
-      const oldOutputRecordItems = outputRecord.attributes.items[0]
+      this.OutputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
+      const objectMapper2Output = this.ObjectMapperRecord.createObjectMapper2OutputInstance(this.ObjectMapperRecord.attributes.items[0], newOutputRecordItems)
 
-      outputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
-      const objectMapper2Output = createObjectMapper2OutputInstance(records.ObjectMapperRecord.attributes.items[0], newOutputRecordItems)
+      this.graph.removeLinks(this.OutputRecord)
 
-      this.graph.removeLinks(records.outputRecord)
-
-      createLinks(records.ObjectMapperRecord, outputRecord, objectMapper2Output)
-          .forEach(link => {
-            link.addTo(this.graph)
-          })
+      this.createLinks(this.ObjectMapperRecord, this.OutputRecord, objectMapper2Output, true)
     },
 
     lang(newData, oldData) {
