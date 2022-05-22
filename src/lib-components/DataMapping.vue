@@ -10,7 +10,7 @@ import { Decorator } from '../dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
 import { routerNamespace } from '../dataMappingLogic/routers';
 import { anchorNamespace } from '../dataMappingLogic/anchors';
-import { loadExample, records } from '../dataMappingLogic/example';
+import { loadExample, records, links, hashLinks } from '../dataMappingLogic/example';
 // import { dialog } from '../dataMappingLogic/utils';
 import { chekLinksRules } from '../dataMappingLogic/recordsRules';
 import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
@@ -21,7 +21,8 @@ import init, {
   objectMapperSchema2Shape,
   createObjectMapper2OutputInstance,
   createInput2ObjectMapperInstance,
-  createLinks
+  createLinks,
+  createNewLinks, getValuesFromShape, createHashLinks
 } from '../dataMappingLogic/init'
 
 
@@ -51,7 +52,7 @@ export default Vue.extend({
     },
     lang: {
       type: String,
-      default: 'he'
+      default: 'en-US'
     },
 
   },
@@ -61,7 +62,7 @@ export default Vue.extend({
       canvas: HTMLDivElement
     },
 
-    graph: dia.Graph,
+    graph: new dia.Graph({}, { cellNamespace: shapes }),
     paper: dia.Paper,
     scroller: ui.PaperScroller,
     toolbarHeight: 50,
@@ -83,6 +84,12 @@ export default Vue.extend({
               result.push({
                 content: `<span style="color:#fe854f">${i18n.methods.t('change')}</span>`,
                 action: 'change'
+              })
+              break
+            case 'toggle':
+              result.push({
+                content: `<span style="color:#fe854f">${i18n.methods.t('toggle')}</span>`,
+                action: 'toggle'
               })
               break
             case 'remove' :
@@ -182,6 +189,7 @@ export default Vue.extend({
       if (sourceLink && sourceLink.isLink()) {
         sourceLink.remove();
       } else {
+
         console.error('NOT valid Link || no link found')
       }
     },
@@ -192,6 +200,7 @@ export default Vue.extend({
       if (targetLink && targetLink.isLink()) {
         targetLink.remove();
       } else {
+        debugger
         console.error('NOT valid Link || no link found')
       }
     },
@@ -247,7 +256,7 @@ export default Vue.extend({
         },
         'action:add-next-sibling': function () {
           toolbar.remove();
-          element.addNextSibling(itemId, element.getDefaultItem());
+          element.addNextSibling(itemId, element.getDefaultItem(itemId, element));
         },
         'action:add-prev-sibling': function () {
           toolbar.remove();
@@ -303,8 +312,7 @@ export default Vue.extend({
 
     itemAction(element, config, itemPath) {
 
-      if (!config || !itemPath)
-        return;
+      if (!config || !itemPath) return;
 
       const inspector = new ui.Inspector({
         cell: element,
@@ -314,11 +322,10 @@ export default Vue.extend({
       inspector.render();
       inspector.el.style.position = 'relative';
       inspector.el.style.overflow = 'hidden';
-
       const dialog = this.createDialog({
         width: 300,
         title: 'Edit Item',
-        closeButton: false,
+        closeButton: true,
         content: inspector.el,
         buttons: ['cancel', 'change']
       });
@@ -328,13 +335,48 @@ export default Vue.extend({
         'action:cancel': function () {
           inspector.remove();
           dialog.close();
-        },
+        }.bind(this),
         'action:change': function () {
-
+          const prevItem = this.getItemByPath(element.attributes.items, [...itemPath])
           inspector.updateCell();
+          const item = this.getItemByPath(element.attributes.items, [...itemPath])
+          console.log(item)
+          if (prevItem.label !== item.label) {
+            item.id = element.getNewItemId(item.id, item.label)
+            element.item(prevItem.id, item)
+            debugger
+          }
+          if (!item.hasDefault) {
+            item._default = undefined
+            element.item(item.id, item)
+          }
+
+          const targetLink = this.getLinkByTargetPort(records.ObjectMapperRecord, item.id)
+          const sourceLink = this.getLinkBySourcePort(records.ObjectMapperRecord, item.id)
+          console.log(prevItem)
+          console.log(sourceLink)
+          if (!item._path) {
+            if (targetLink
+                && sourceLink
+                && targetLink.isLink()
+                && sourceLink.isLink()) {
+
+              targetLink.remove()
+              sourceLink.remove()
+            }
+          }
+          if (item._path
+              && targetLink
+              && targetLink.isLink()
+              && item._path !== prevItem._path) {
+
+            targetLink.remove()
+
+          }
+          this.liveUpdateSchema()
           inspector.remove();
           dialog.close();
-        }
+        }.bind(this)
       });
 
       const input = inspector.el.querySelector('[contenteditable]');
@@ -446,14 +488,7 @@ export default Vue.extend({
     editObjectMapperRecord(targetId, updateData) {
       let ObjectMapperRecord = records.ObjectMapperRecord
 
-      let items = ObjectMapperRecord.attributes.items
-
-      const path = ObjectMapperRecord.getItemPathArray(targetId)
-
-      const tempItem = ObjectMapperRecord.item(targetId)
-      console.log(tempItem)
-
-      const item = this.getItemByPath(items, path)
+      const item = ObjectMapperRecord.item(targetId)
 
       updateData ? this.updateProperties(updateData, item) : item._path = undefined
 
@@ -470,11 +505,10 @@ export default Vue.extend({
       })
     },
 
-
     start(objectMapperSchema, inputJson, outputJson) {
       setTheme('material');
 
-      const graph = this.graph = new dia.Graph({}, { cellNamespace: shapes });
+      const graph = this.graph
 
       const paper = new dia.Paper({
         model: graph,
@@ -805,7 +839,25 @@ export default Vue.extend({
     },
 
     objectMapperSchema(newData, oldData) {
+      console.log('newData ===> ', newData)
+      console.log('oldData ===> ', oldData)
 
+      const objectMapperRecord = records.ObjectMapperRecord
+      objectMapperRecord.recordUpdate(objectMapperRecord.attributes.items[0], [objectMapperSchema2Shape(newData)])
+
+      const inputRecord = records.InputRecord
+      objectMapperRecord.recordUpdate(inputRecord.attributes.items[0], [objectMapperSchema2Shape(newData)])
+
+      // the new objectMapper record
+      let newObjectMapperSchemaItems = objectMapperRecord.attributes.items[0]
+      const Input2ObjectMapper = createInput2ObjectMapperInstance(newObjectMapperSchemaItems, records.InputRecord.attributes.items[0])
+
+      this.graph.removeLinks(records.InputRecord)
+
+      createLinks(records.InputRecord, objectMapperRecord, Input2ObjectMapper)
+          .forEach(link => {
+            link.addTo(this.graph)
+          })
     },
 
     outputJson(newData, oldData) {
@@ -816,6 +868,14 @@ export default Vue.extend({
       const oldOutputRecordItems = outputRecord.attributes.items[0]
 
       outputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
+      const objectMapper2Output = createObjectMapper2OutputInstance(records.ObjectMapperRecord.attributes.items[0], newOutputRecordItems)
+
+      this.graph.removeLinks(records.outputRecord)
+
+      createLinks(records.ObjectMapperRecord, outputRecord, objectMapper2Output)
+          .forEach(link => {
+            link.addTo(this.graph)
+          })
     },
 
     lang(newData, oldData) {

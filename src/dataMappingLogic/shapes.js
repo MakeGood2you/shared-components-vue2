@@ -1,333 +1,5 @@
 import { shapes, util } from '@OtailO-recommerce/rappid';
-
-export class Constant extends shapes.standard.BorderedRecord {
-    defaults() {
-        return util.defaultsDeep({
-            type: 'mapping.Constant',
-            itemHeight: 20,
-            itemOffset: 5,
-            itemMinLabelWidth: 10,
-            itemIcon: { padding: 4 },
-            attrs: {
-                root: {
-                    magnet: false
-                },
-                body: {
-                    stroke: '#EBEEF0'
-                },
-                itemLabels: {
-                    fontSize: 12,
-                    fontFamily: 'Sans-serif',
-                },
-                itemLabels_1: {
-                    magnet: true
-                },
-                itemBodies_0: {
-                    stroke: '#7C90A6'
-                },
-                itemBodies: {
-                    stroke: 'none'
-                }
-            },
-            items: [
-                [{
-                    id: 'icon',
-                    icon: '../assets/images/clipboard.svg',
-                }],
-                [{
-                    id: 'value',
-                    label: '',
-                    span: 2
-                }],
-                []
-            ]
-        }, super.defaults);
-    }
-
-    setValue(value, opt) {
-        return this.prop(['items', 1, 0, 'label'], '"' + value + '"', opt);
-    }
-
-    getDefaultItem() {
-        return {
-            id: util.uuid(),
-            label: '""',
-            icon: '../assets/images/clipboard.svg'
-        };
-    }
-
-    getItemTools() {
-        return [
-            { action: 'edit', content: 'Edit Constant' }
-        ];
-    }
-
-    getTools() {
-        return [
-            { action: 'remove', content: warning('Remove Constant') }
-        ];
-    }
-
-    getInspectorConfig() {
-        return {
-            label: {
-                label: 'Label',
-                type: 'content-editable'
-            }
-        };
-    }
-}
-
-export class Concat extends shapes.standard.HeaderedRecord {
-    defaults() {
-        return util.defaultsDeep({
-            type: 'mapping.Concat',
-            itemHeight: 20,
-            itemOffset: 5,
-            padding: { top: 35, left: 10, right: 0, bottom: 0 },
-            itemMinLabelWidth: 50,
-            itemOverflow: true,
-            attrs: {
-                root: {
-                    magnet: false
-                },
-                body: {
-                    stroke: '#EBEEF0'
-                },
-                header: {
-                    height: 35,
-                    fill: '#F8FAFC',
-                    stroke: '#EBEEF0'
-                },
-                tabColor: {
-                    height: 5,
-                    x: 0,
-                    y: 0,
-                    width: 'calc(w)',
-                    fill: '#FF4365',
-                    stroke: '#FF4365'
-                },
-                headerLabel: {
-                    y: 5,
-                    fontFamily: 'Sans-serif',
-                    fontWeight: 300,
-                    textWrap: {
-                        text: 'concat',
-                        ellipsis: true,
-                        height: 30
-                    }
-                },
-                itemLabels: {
-                    magnet: true,
-                    fontSize: 12,
-                    fontFamily: 'Sans-serif',
-                },
-                itemLabels_0: {
-                    magnet: 'passive',
-                    cursor: 'pointer'
-                },
-                itemBodies_0: {
-                    stroke: '#EBEEF0'
-                }
-            },
-            items: [
-                [{
-                    id: 'value_1',
-                    label: 'Value 1',
-                    icon: '../assets/images/link.svg',
-                }, {
-                    id: 'value_2',
-                    label: 'Value 2',
-                    icon: '../assets/images/link.svg',
-                }, {
-                    id: 'value_3',
-                    label: 'Value 3',
-                    icon: '../assets/images/link.svg',
-                }], [{
-                    id: 'result',
-                    label: 'Result ⇛',
-                    height: 40
-                }]
-            ]
-        }, super.defaults);
-    }
-
-    preinitialize() {
-        this.markup = [{
-            tagName: 'rect',
-            selector: 'body'
-        }, {
-            tagName: 'rect',
-            selector: 'header'
-        }, {
-            tagName: 'rect',
-            selector: 'tabColor'
-        }, {
-            tagName: 'text',
-            selector: 'headerLabel'
-        }];
-    }
-
-    getNumberOfValues() {
-        return this.prop(['items', 0]).length;
-    }
-
-    getDefaultItem() {
-        return {
-            id: util.uuid(),
-            label: 'Value ' + (this.getNumberOfValues() + 1),
-            icon: '../assets/images/link.svg'
-        };
-    }
-
-    getItemTools(itemId) {
-        const groupIndex = this.getItemGroupIndex(itemId);
-        if (groupIndex !== 0)
-            return null;
-        const tools = [
-            { action: 'edit', content: 'Edit Value' },
-            { action: 'add-next-sibling', content: 'Add Value' }
-        ];
-        if (this.getNumberOfValues() > 2) {
-            tools.push({ action: 'remove', content: warning('Remove Value') });
-        }
-        tools.push();
-        return tools;
-    }
-
-    getTools() {
-        return [
-            { action: 'add-item', content: 'Add Value' },
-            { action: 'remove', content: warning('Remove Concat') }
-        ];
-    }
-
-    getInspectorConfig(itemId) {
-        const groupIndex = this.getItemGroupIndex(itemId);
-        if (groupIndex !== 0)
-            return null;
-        return {
-            label: {
-                label: 'Label',
-                type: 'content-editable'
-            }
-        };
-    }
-}
-
-export class GetDate extends shapes.standard.HeaderedRecord {
-    defaults() {
-        return util.defaultsDeep({
-            type: 'mapping.GetDate',
-            itemHeight: 20,
-            itemOffset: 5,
-            padding: { top: 35, left: 10, right: 0, bottom: 0 },
-            itemMinLabelWidth: 50,
-            itemOverflow: true,
-            attrs: {
-                root: {
-                    magnet: false
-                },
-                body: {
-                    stroke: '#EBEEF0'
-                },
-                header: {
-                    height: 35,
-                    fill: '#F8FAFC',
-                    stroke: '#EBEEF0'
-                },
-                tabColor: {
-                    height: 5,
-                    x: 0,
-                    y: 0,
-                    width: 'calc(w)',
-                    fill: '#00BC9A',
-                    stroke: '#00BC9A'
-                },
-                headerLabel: {
-                    y: 5,
-                    fontFamily: 'Sans-serif',
-                    fontWeight: 300,
-                    textWrap: {
-                        text: 'get-date',
-                        ellipsis: true,
-                        height: 30
-                    }
-                },
-                itemLabels: {
-                    magnet: true,
-                    fontSize: 12,
-                    fontFamily: 'Sans-serif',
-                },
-                itemLabels_0: {
-                    magnet: 'passive',
-                    cursor: 'pointer'
-                },
-                itemBodies: {
-                    stroke: '#EBEEF0'
-                }
-            },
-            items: [
-                [{
-                    id: 'value',
-                    label: '⇛ Value',
-                    height: 60
-                }],
-                [{
-                    id: 'year',
-                    label: 'year',
-                    icon: 'assets/images/link.svg',
-                }, {
-                    id: 'month',
-                    label: 'month',
-                    icon: '../assets/images/link.svg',
-                }, {
-                    id: 'day',
-                    label: 'day',
-                    icon: '../assets/images/link.svg',
-                }]
-            ]
-        }, super.defaults);
-    }
-
-    preinitialize() {
-        this.markup = [{
-            tagName: 'rect',
-            selector: 'body'
-        }, {
-            tagName: 'rect',
-            selector: 'header'
-        }, {
-            tagName: 'rect',
-            selector: 'tabColor'
-        }, {
-            tagName: 'text',
-            selector: 'headerLabel'
-        }];
-    }
-
-    getDefaultItem() {
-        return {
-            id: util.uuid(),
-            label: 'item',
-            icon: '../assets/images/document.svg'
-        };
-    }
-
-    getItemTools() {
-        return null;
-    }
-
-    getTools() {
-        return [
-            { action: 'remove', content: warning('Remove GetDate') }
-        ];
-    }
-
-    getInspectorConfig() {
-        return null;
-    }
-}
+import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
 
 export class Link extends shapes.standard.Link {
     defaults() {
@@ -353,11 +25,68 @@ export class Link extends shapes.standard.Link {
 
 }
 
+export class LinkUtils {
+    createLinks(sourceShape, targetShape, source2TargetInstance) {
+        const links = []
+        source2TargetInstance.map(link => {
+            links.push(
+                new Link({
+                    source: { id: sourceShape.id, port: link.source },
+                    target: { id: targetShape.id, port: link.target },
+                }),
+            )
+        })
+        return links
+    }
+    createHashLinks(sourceShape, targetShape, source2TargetInstance) {
+        const bySource = {}
+        const byTarget = {}
+        source2TargetInstance.map(data => {
+            const link = new Link({
+                source: { id: sourceShape.id, port: data.source },
+                target: { id: targetShape.id, port: data.target },
+            })
+            bySource[data.source] = link
+            byTarget[data.target] = link
+        })
+        return {
+            bySource,
+            byTarget
+        }
+    }
+}
+
 export class Record extends shapes.standard.HeaderedRecord {
 
     constructor(allowedTools, attributes) {
         super(attributes);
         this.allowedTools = allowedTools;
+    }
+
+    getValuesFromShape(shape, keySearch = 'id', values = []) {
+        Object.keys(shape).map((key, index) => {
+                if (typeof keySearch === 'string' && key === keySearch) {
+                    values.push(shape[key])
+
+                } else if (Array.isArray(keySearch)) {
+
+                    const _keySearch = keySearch[0]
+                    const _keySearch2 = keySearch[1]
+
+                    if (shape[_keySearch2] && shape[_keySearch] && _keySearch === key) {
+                        const result = {}
+                        result[_keySearch] = shape[_keySearch]
+                        result[_keySearch2] = shape[_keySearch2]
+                        values.push(result)
+                    }
+                }
+
+                if (shape[key] && typeof shape[key] === 'object') {
+                    this.getValuesFromShape(shape[key], keySearch, values)
+                }
+            }
+        )
+        return values
     }
 
     defaults(items) {
@@ -461,19 +190,27 @@ export class Record extends shapes.standard.HeaderedRecord {
         return this.attr(['headerLabel', 'textWrap', 'text'], name, opt);
     }
 
-    getDefaultItem() {
+    getDefaultItem(itemId, element) {
+        const item = element.item(itemId);
         return {
-            id: util.uuid(),
+            id: this.getNewItemId(itemId),
             label: 'new_item',
-            icon: '../assets/images/document.svg'
+            icon: item.icon,
+            _type: item._type
         };
+    }
+
+    getNewItemId(id, newId = 'new_item') {
+        id = id.split('.')
+        id.pop()
+        return id.join('.') + '.' + newId;
     }
 
     getItemTools(itemId) {
         console.log(
             itemId
         )
-        
+
         return [
             { action: 'edit', content: 'Edit Item' },
             { action: 'edit-decorator', content: 'Edit Decorator' },
@@ -512,7 +249,156 @@ export class MappingRecord extends Record {
     constructor(allowedTools, attributes) {
         super(allowedTools, attributes);
     }
+    //create instance links
+    createObjectMapper2OutputInstance(objectMapperShape, outputShape) {
 
+        const objectMapperIds = this.getValuesFromShape(objectMapperShape)
+        const outputIds = this.getValuesFromShape(outputShape)
+
+        const result = []
+        objectMapperIds.forEach((source) => {
+            const index = source.indexOf('.')
+            if (index >= 0) {
+
+                const target = source.substring(index + 1)
+
+                if (outputIds.includes(target)) {
+                    const link = {
+                        source,
+                        target,
+                    }
+                    result.push(link)
+                }
+            }
+        })
+        return result
+    }
+
+    //create instance links
+    createInput2ObjectMapperInstance(objectMapperShape, inputShape) {
+        const objectMapperIds = this.getValuesFromShape(objectMapperShape, ['_absPath', 'id'])
+        const inputIds = this.getValuesFromShape(inputShape)
+        const result = []
+        objectMapperIds.map((link) => {
+            let source = cutStringFromSymbol(link['_absPath'], '.')
+
+            source = _replaceAll(source, '[*]', '[0]')
+            if (inputIds.includes(source)) {
+                result.push({
+                    source,
+                    target: link['id'],
+                })
+            }
+        })
+        return result
+    }
+
+    objectMapperSchemaShape2Schema(shape) {
+        switch (shape._type) {
+            case 'Object':
+                const result = shape.items.map((_item) => objectMapperSchemaShape2Schema(_item)).reduce(
+                    (previousValue, currentValue) => {
+                        return Object.assign(previousValue, currentValue)
+                    }, {})
+
+                return {
+                    [shape.label]: {
+                        ...result,
+                        _path: shape._path,
+                        _default: shape._default ? shape._default : undefined,
+                        _type: shape._type
+                    }
+                }
+            case'Array':
+                return {
+                    [shape.label]: {
+                        _element: shape.items.map((item) => objectMapperSchemaShape2Schema(item)).reduce(
+                            (previousValue, currentValue) => {
+                                return Object.assign(previousValue, currentValue)
+                            }, { ...shape.elementAttributes }),
+
+                        _path: shape._path,
+                        _default: shape._default ? shape._default : undefined,
+                        _type: shape._type
+                    }
+                }
+
+            case'Leaf':
+                return {
+                    [shape.label]: {
+                        _path: shape._path,
+                        _default: shape._default ? shape._default : undefined,
+                        _type: shape._type
+                    }
+                }
+            default:
+                throw 'Unknown schema type ==> objectMapperSchemaShape2JSON'
+        }
+        //
+
+    }
+
+    objectMapperSchema2Shape(schema, label = '$root', path = '') {
+        let result = null
+
+        switch (schema._type) {
+            case 'Object': {
+                const items = []
+                Object.keys(schema).forEach(key => {
+                    if (key[0] !== '_') {
+                        items.push(this.objectMapperSchema2Shape(schema[key], key, path + label + '.'))
+                    }
+                })
+                result = {
+                    icon: 'mapper/object.svg',
+                    _path: schema._path,
+                    _type: 'Object',
+                    label: `${label}`,
+                    items,
+                    id: path + label,
+                }
+            }
+                break
+            case 'Array':
+                const items = []
+                const elementAttributes = {}
+                Object.keys(schema._element).forEach(key => {
+                    if (key[0] !== '_') {
+                        items.push(this.objectMapperSchema2Shape(schema._element[key], key, path + label + '.[0].'))
+                    } else {
+                        elementAttributes[key] = schema._element[key]
+                    }
+                })
+                result = {
+                    _path: schema._path,
+                    _type: 'Array',
+                    icon: 'mapper/array.svg',
+                    label: `${label}`,
+                    items,
+                    id: path + label,
+                    elementAttributes
+                }
+                break
+            case 'Leaf':
+                result = {
+                    ...schema,
+                    label,
+                    id: path + label,
+                    icon: 'mapper/document.svg'
+                }
+                break
+            default:
+                throw 'Unknown schema type ==> objectMapperSchema2Shape'
+        }
+        return result
+    }
+
+}
+
+export class objectMapperEditor extends MappingRecord {
+    constructor(allowedTools, attributes) {
+        super(allowedTools, attributes);
+    }
     getObjectMapperInspectorConfig() {
         return {
             label: {
@@ -523,47 +409,93 @@ export class MappingRecord extends Record {
                 label: 'path',
                 type: 'content-editable'
             },
+            hasDefault: {
+                label: 'Has Default',
+                type: 'toggle',
+                defaultValue: true
+            },
             _default: {
                 label: 'default',
-                type: 'content-editable'
+                type: 'content-editable',
+                // defaultValue: ''
             },
             _type: {
                 label: 'type',
                 type: 'content-editable'
             },
             _pathLevelUp: {
-                label: '_pathLevelUp',
+                label: 'Path Level Up',
                 type: 'content-editable'
             },
             icon: {
                 label: 'Icon',
                 type: 'select-button-group',
                 options: [{
-                    value: 'mapper/link.svg',
-                    content: '<img height="42px" src="mapper/link.svg"/>'
+                    value: 'mapper/array.svg',
+                    content: '<img height="42px" src="mapper/array.svg"/>'
                 }, {
                     value: 'mapper/document.svg',
                     content: '<img height="42px" src="mapper/document.svg"/>'
                 }, {
-                    value: 'mapper/clipboard.svg',
-                    content: '<img height="42px" src="mapper/clipboard.svg"/>'
-                }, {
-                    value: 'mapper/file.svg',
-                    content: '<img height="42px" src="mapper/file.svg"/>'
+                    value: 'mapper/object.svg',
+                    content: '<img height="42px" src="mapper/object.svg"/>'
                 }]
-            },
-            highlighted: {
-                label: 'Highlight',
-                type: 'toggle'
             }
-        };
+
+        }
     }
+
 }
 
-console.log('__dirname ==> ',__dirname)
 export class JsonRecord extends Record {
     constructor(allowedTools, attributes) {
         super(allowedTools, attributes);
+    }
+
+    createKeyValueString(key, value) {
+        if (!key) key = 'none'
+        if (!value) value = ''
+        if (!['Array', 'Object'].includes(value.constructor.name))
+            return `${key}: ${value.toString()}`
+        else if (value.constructor.name === 'Object')
+            return `${key}`
+        else if (value.constructor.name === 'Array')
+            return `${key}`
+        else {
+
+        }
+    }
+
+    transformJSON2Shape(obj, path = '') {
+        if (obj && typeof obj === 'object') {
+            const isArray = Array.isArray(obj)
+
+            return Object.keys(obj).map((key) => {
+
+                const _key = isArray ? `[${key}]` : key
+
+                const label = this.createKeyValueString(key, obj[key])
+
+                const items = this.transformJSON2Shape(obj[key], path + _key + '.')
+
+                return items ?
+                    {
+                        key,
+                        isArray,
+                        label,
+                        items,
+                        id: path + _key,
+                        icon: `mapper/${isArray ? 'array' : 'object'}.svg`
+                    } : {
+                        icon: 'mapper/document.svg',
+                        key,
+                        isArray,
+                        label,
+                        value: obj[key],
+                        id: path + _key,
+                    }
+            })
+        }
     }
 
     getJSONInspectorConfig() {
@@ -601,6 +533,35 @@ export class JsonRecord extends Record {
             }
         };
     }
+
+    transformShape2JSON(shape) {
+        if (!Array.isArray(shape)) {
+            const value = shape.value ?? this.transformShape2JSON(shape.items)
+            return shape.isArray ? value : { [shape.key]: value }
+        }
+        const response = shape.map(_item => this.transformShape2JSON(_item))
+
+        if (shape.isArray) {
+            return response
+        }
+
+        return response.reduce(
+            (previousValue, currentValue) => {
+                return Object.assign(previousValue, currentValue)
+            }, {})
+    }
+}
+
+export class inputJson extends JsonRecord {
+    constructor(allowedTools, attributes) {
+        super(allowedTools, attributes);
+    }
+}
+
+export class outputJson extends JsonRecord {
+    constructor(allowedTools, attributes) {
+        super(allowedTools, attributes);
+    }
 }
 
 function warning(text) {
@@ -615,11 +576,8 @@ const RecordView = shapes.standard.RecordView;
 Object.assign(shapes, {
     mapping: {
         Link,
-        Constant,
         ConstantView,
-        Concat,
         ConcatView,
-        GetDate,
         GetDateView,
         Record,
         RecordView

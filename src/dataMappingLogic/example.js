@@ -1,7 +1,7 @@
 import i18nMixin from "../services/i18n.vue.mixin";
 import { JsonRecord, MappingRecord } from './shapes'
 
-import { createLinks } from './init'
+import { createLinks, createHashLinks } from './init'
 
 const records = {
     InputRecord: null,
@@ -9,10 +9,13 @@ const records = {
     outputRecord: null
 }
 
+let links = []
+let hashLinks = {}
+
 
 const loadExample = function (graph, shapes, options) {
 
-    const InputRecord = new JsonRecord(['edit', 'add-next-sibling', 'add-prev-sibling', 'remove'], {
+    const InputRecord = new JsonRecord([], {
         items: [
             shapes.inputShape,
         ],
@@ -20,7 +23,7 @@ const loadExample = function (graph, shapes, options) {
         .position(100, 200)
         .addTo(graph)
 
-    const ObjectMapperRecord = new MappingRecord(['edit'], {
+    const ObjectMapperRecord = new MappingRecord(['edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child', 'edit-decorator'], {
         items: [
             shapes.objectMapperShape,
         ],
@@ -47,8 +50,13 @@ const loadExample = function (graph, shapes, options) {
     records.list = [InputRecord, ObjectMapperRecord, OutputRecord]
 
     // createInputLinks(links)
-    let links = createLinks(InputRecord, ObjectMapperRecord, options.inputToObjectMapper, graph)
+    links = createLinks(InputRecord, ObjectMapperRecord, options.inputToObjectMapper, graph)
     links = links.concat(createLinks(ObjectMapperRecord, OutputRecord, options.objectMapperToOutput, graph))
+    // hashLinks = createHashLinks(InputRecord, ObjectMapperRecord, options.inputToObjectMapper)
+    debugger
+    // const hashLinks2 =  createHashLinks(ObjectMapperRecord, OutputRecord, options.objectMapperToOutput)
+    // Object.assign(hashLinks.byTarget, hashLinks2.byTarget)
+    // Object.assign(hashLinks.bySource, hashLinks2.bySource)
     // Array.prototype.push.apply(links, createOutputLinks())
     links.forEach(function (link) {
         link.addTo(graph)
@@ -56,7 +64,9 @@ const loadExample = function (graph, shapes, options) {
 }
 export {
     loadExample,
-    records
+    records,
+    links,
+    hashLinks
 }
 
 // link.on('change:source', function() {console.log('triggered when the link changes its source')})
