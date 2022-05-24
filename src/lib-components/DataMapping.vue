@@ -15,6 +15,21 @@ import i18n, { getLanguage } from '../services/i18n.vue.mixin';
 
 import Vue from 'vue';
 
+// import {
+//   getLinkBySourcePort,
+//   getLinkByTargetPort,
+//   removeLinks,
+//   createLinks,
+//   createHashLinks,
+//   removeSourceLinkByTargetPort,
+//   removeTargetLinkBySourcePort,
+//   createLink,
+//   showLinkTools,
+//   linkAction,
+//
+// } from '../dataMappingLogic/link-actions';
+// import {  } from '../dataMappingLogic/items-actions';
+
 export default Vue.extend({
   name: "DataMapping",
 
@@ -123,9 +138,9 @@ export default Vue.extend({
           toolbar.remove();
           element.addPrevSibling(itemId, element.getDefaultItem(itemId, element));
         },
-        'action:edit-decorator': function () {
+        'action:edit-function': function () {
           toolbar.remove();
-          this.itemDecoratorEditAction(element, itemId);
+          this.editUserFunctionAction(element, itemId);
         }.bind(this)
       });
     },
@@ -153,34 +168,37 @@ export default Vue.extend({
       });
     },
 
-    itemDecoratorEditAction(element, itemId) {
-      const config = { [itemId]:{
-        transformerCode: {
-          type: 'textarea', label: 'Decorator' }
-      }};
-      const path = ['decorators'];
-      const item = element.item(itemId)
-      this.itemAction(element, config, path);
+    editUserFunctionAction(element, itemId) {
+      const config = { _transformerCode: { type: 'content-editable', label: 'Transformer Code' } };
+      const path = element.getItemPathArray(itemId);
+      this.itemAction(element, config, path, itemId, 'user-function');
     },
 
     itemEditAction(element, itemId) {
       let config = element.getInspectorConfig(itemId);
       const path = element.getItemPathArray(itemId);
-      this.itemAction(element, config, path);
+      this.itemAction(element, config, path, itemId, 'item');
     },
 
-    itemAction(element, config, itemPath) {
-
-      if (!config || !itemPath) return;
-
+    createInspector(element, itemPath, config) {
       const inspector = new ui.Inspector({
         cell: element,
         live: false,
-        inputs: util.setByPath({}, itemPath, config)
+        inputs: util.setByPath({}, itemPath, config),
+        title:'(data, context) => { Your Code is here }'
       });
       inspector.render();
       inspector.el.style.position = 'relative';
       inspector.el.style.overflow = 'hidden';
+      return inspector
+    },
+
+    itemAction(element, config, itemPath, itemId, type) {
+
+      if (!config || !itemPath) return;
+
+      const inspector = this.createInspector(element, itemPath, config)
+
       const dialog = this.createDialog({
         width: 300,
         title: 'Edit Item',
@@ -190,16 +208,78 @@ export default Vue.extend({
       });
 
       dialog.open();
+
       dialog.on({
         'action:cancel': function () {
           inspector.remove();
           dialog.close();
         }.bind(this),
         'action:change': function () {
+          inspector.updateCell()
+          this.actionType(type, element, itemPath, itemId, inspector)
+          this.liveUpdateSchema()
+          inspector.remove();
+          dialog.close();
+        }.bind(this)
+      });
+
+      const input = inspector.el.querySelector('[contenteditable]');
+      if (input) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(input);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    },
+
+    renderDecorators(element) {
+      const decorators = element.get('decorators');
+      debugger
+      if (!util.isPlainObject(decorators))
+        return;
+      const view = element.findView(this.paper);
+      Decorator.remove(view);
+      Object.keys(decorators).forEach(itemId => {
+        const text = decorators[itemId];
+        if (!text || !element.item(itemId))
+          return;
+        Decorator.create(view, itemId, { text });
+      });
+    },
+
+    addDecorator(element, itemId) {
+      const decorators = element.get('decorators');
+      if (!decorators) {
+        element.attributes.decorators = { [itemId]: 'f()' }
+      } else if (!decorators[itemId]) {
+        element.attributes.decorators[itemId] = 'f()'
+      } else return
+      this.renderDecorators(element)
+    },
+
+    removeDecorator(element, itemId) {
+      if (element.attributes.decorators && element.attributes.decorators[itemId]) {
+        delete element.attributes.decorators[itemId]
+        this.renderDecorators(element)
+      }
+    },
+
+    actionType(type, element, itemPath, itemId, inspector) {
+      switch (type) {
+        case 'user-function':
+          //
+          const inputText = inspector.el.querySelector('[contenteditable]').innerText;
+          if (['', undefined, null].includes(inputText)) {
+            this.removeDecorator(element, itemId)
+          } else
+          this.addDecorator(element, itemId)
+          break
+
+        case 'item':
           const prevItem = this.getItemByPath(element.attributes.items, [...itemPath])
           inspector.updateCell();
           const item = this.getItemByPath(element.attributes.items, [...itemPath])
-          console.log(item)
           if (prevItem.label !== item.label) {
             item.id = element.getNewItemId(item.id, item.label)
             element.item(prevItem.id, item)
@@ -211,8 +291,7 @@ export default Vue.extend({
 
           const targetLink = this.getLinkByTargetPort(this.ObjectMapperRecord, item.id)
           const sourceLink = this.getLinkBySourcePort(this.ObjectMapperRecord, item.id)
-          console.log(prevItem)
-          console.log(sourceLink)
+
           if (!item._path) {
             if (targetLink
                 && sourceLink
@@ -231,20 +310,9 @@ export default Vue.extend({
             targetLink.remove()
 
           }
-          this.liveUpdateSchema()
-          inspector.remove();
-          dialog.close();
-        }.bind(this)
-      });
-
-      const input = inspector.el.querySelector('[contenteditable]');
-      if (input) {
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(input);
-        selection.removeAllRanges();
-        selection.addRange(range);
+          break
       }
+
     },
 
     getItemByPath(items, path) {
@@ -585,12 +653,12 @@ export default Vue.extend({
       if (targetLink && targetLink.isLink()) {
         targetLink.remove();
       } else {
-        debugger
+
         console.error('NOT valid Link || no link found')
       }
     },
 
-    start(objectMapperSchema, inputJson, outputJson) {
+    start() {
       setTheme('material');
 
       const graph = this.graph
@@ -728,7 +796,7 @@ export default Vue.extend({
           .position(100, 200)
           .addTo(graph)
       this.ObjectMapperRecord = new ObjectMapperRecord(
-          ['edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child', 'edit-decorator'],
+          ['edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child', 'edit-function'],
           this.objectMapperSchema)
           .setName(i18n.methods.t('MappingSchema'))
           .position(550, 100)
@@ -911,7 +979,6 @@ export default Vue.extend({
   },
 
   mounted() {
-
     const { scroller, paper, $refs: { canvas } } = this;
     canvas.appendChild(this.scroller.el);
 
@@ -921,7 +988,7 @@ export default Vue.extend({
 
   watch: {
     inputJson(newData, oldData) {
-      debugger
+
       const newInputRecord = new InputRecord([], newData)
 
       const newInputRecordItems = newInputRecord.attributes.items[0]
@@ -938,9 +1005,7 @@ export default Vue.extend({
     },
 
     objectMapperSchema(newData, oldData) {
-      debugger
-      console.log('newData ===> ', newData)
-      console.log('oldData ===> ', oldData)
+
       const newShape = new ObjectMapperRecord([], newData)
       this.ObjectMapperRecord.recordUpdate(this.ObjectMapperRecord.attributes.items[0], newShape.attributes.items[0])
       // this.ObjectMapperRecord.recordUpdate(this.InputRecord.attributes.items[0], [this.ObjectMapperRecord.objectMapperSchema2Shape(newData)])
@@ -955,7 +1020,7 @@ export default Vue.extend({
     },
 
     outputJson(newData, oldData) {
-      debugger
+
       const newOutputRecord = new OutputRecord([], newData)
 
       const newOutputRecordItems = newOutputRecord.attributes.items[0]

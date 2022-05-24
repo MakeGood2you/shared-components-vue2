@@ -176,13 +176,9 @@ export class Record extends shapes.standard.HeaderedRecord {
     }
 
     getItemTools(itemId) {
-        console.log(
-            itemId
-        )
-
         return [
             { action: 'edit', content: 'Edit Item' },
-            { action: 'edit-decorator', content: 'Edit Decorator' },
+            { action: 'edit-function', content: 'Edit User Function' },
             { action: 'add-child', content: 'Add Child' },
             { action: 'add-next-sibling', content: 'Add Next Sibling' },
             { action: 'add-prev-sibling', content: 'Add Prev Sibling' },
@@ -240,7 +236,8 @@ export class ObjectMapperRecord extends Record {
                         ...result,
                         _path: shape._path,
                         _default: shape._default ? shape._default : undefined,
-                        _type: shape._type
+                        _type: shape._type,
+                        // _transformerCode: shape._transformerCode ? shape._transformerCode : undefined,
                     }
                 }
             case'Array':
@@ -253,7 +250,8 @@ export class ObjectMapperRecord extends Record {
 
                         _path: shape._path,
                         _default: shape._default ? shape._default : undefined,
-                        _type: shape._type
+                        _type: shape._type,
+                        // _transformerCode: shape._transformerCode ? shape._transformerCode : undefined,
                     }
                 }
 
@@ -262,7 +260,8 @@ export class ObjectMapperRecord extends Record {
                     [shape.label]: {
                         _path: shape._path,
                         _default: shape._default ? shape._default : undefined,
-                        _type: shape._type
+                        _type: shape._type,
+                        _transformerCode: shape._transformerCode ? shape._transformerCode : undefined,
                     }
                 }
             default:
@@ -284,12 +283,13 @@ export class ObjectMapperRecord extends Record {
                     }
                 })
                 result = {
+                    items,
                     icon: 'mapper/object.svg',
                     _path: schema._path,
                     _type: 'Object',
                     label: `${label}`,
-                    items,
                     id: path + label,
+                    _transformerCode: schema._transformerCode ? schema._transformerCode : undefined,
                 }
             }
                 break
@@ -304,13 +304,14 @@ export class ObjectMapperRecord extends Record {
                     }
                 })
                 result = {
+                    items,
+                    elementAttributes,
+                    _transformerCode: schema._transformerCode ? schema._transformerCode : undefined,
                     _path: schema._path,
                     _type: 'Array',
                     icon: 'mapper/array.svg',
                     label: `${label}`,
-                    items,
                     id: path + label,
-                    elementAttributes
                 }
                 break
             case 'Leaf':
@@ -318,7 +319,8 @@ export class ObjectMapperRecord extends Record {
                     ...schema,
                     label,
                     id: path + label,
-                    icon: 'mapper/document.svg'
+                    icon: 'mapper/document.svg',
+                    _transformerCode: schema._transformerCode ? schema._transformerCode : undefined,
                 }
                 break
             default:
@@ -473,15 +475,6 @@ export class JsonRecord extends Record {
                 label: 'Icon',
                 type: 'select-button-group',
                 options: [{
-                    value: 'link',
-                    content: '<img height="42px" src="../assets/images/link.svg"/>',
-                    buttonWidth: 20,
-                    icon: '../assets/images/link.svg',
-                    iconSelected: '../assets/images/link.svg',
-                    iconWidth: 20,
-                    iconHeight: 20
-
-                }, {
                     value: 'document',
                     content: '<img height="42px" src="../assets/images/document.svg"/>'
                 }, {
