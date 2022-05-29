@@ -131,12 +131,35 @@ export default Vue.extend({
           toolbar.remove();
           this.itemEditAction(element, itemId);
         }.bind(this),
-        'action:add-child': function () {
+        'action:add-child-to-object': function () {
           toolbar.remove();
-          element.addItemAtIndex(itemId, Infinity, element.getDefaultItem());
+          element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
           if (element.isItemCollapsed(itemId))
             element.toggleItemCollapse(itemId);
+          const newData = {
+            icon: 'mapper/object.svg',
+            _type: 'Object',
+          }
+          element.item(itemId, newData)
+          const parent = element.item(itemId)
+          console.log(parent)
+          this.liveUpdateSchema()
         },
+        'action:add-child-to-array': function () {
+          toolbar.remove();
+          element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
+          if (element.isItemCollapsed(itemId))
+            element.toggleItemCollapse(itemId);
+          const newData = {
+            icon: 'mapper/array.svg',
+            _type: 'Array',
+          }
+          element.item(itemId, newData)
+          const parent = element.item(itemId)
+          console.log(parent)
+          this.liveUpdateSchema()
+        },
+
         'action:add-next-sibling': function () {
           toolbar.remove();
           element.addNextSibling(itemId, element.getDefaultItem(itemId, element));
@@ -176,6 +199,7 @@ export default Vue.extend({
     },
 
     editUserFunctionAction(element, itemId) {
+
       const config = { _transformerCode: { type: 'content-editable', label: 'Transformer Code' } };
       const path = element.getItemPathArray(itemId);
       this.itemAction(element, config, path, itemId, 'user-function');
@@ -218,7 +242,9 @@ export default Vue.extend({
 
       dialog.on({
         'action:cancel': function () {
-          this.setPrevValidUserFunction(itemId)
+          if (type === 'user-function') {
+            this.setPrevValidUserFunction(itemId)
+          }
           inspector.remove();
           dialog.close();
         }.bind(this),
@@ -262,7 +288,7 @@ export default Vue.extend({
 
       if (value === '') this.removeDecorator(this.ObjectMapperRecord, itemId)
 
-      // this.liveUpdateSchema()
+      delete this.tempData.itemId
     },
     renderDecorators(element) {
       const decorators = element.get('decorators');
@@ -311,10 +337,12 @@ export default Vue.extend({
           const prevItem = this.getItemByPath(element.attributes.items, [...itemPath])
           inspector.updateCell();
           const item = this.getItemByPath(element.attributes.items, [...itemPath])
+
           if (prevItem.label !== item.label) {
             item.id = element.getNewItemId(item.id, item.label)
             element.item(prevItem.id, item)
           }
+
           if (!item.hasDefault) {
             item._default = undefined
             element.item(item.id, item)
@@ -333,6 +361,7 @@ export default Vue.extend({
               sourceLink.remove()
             }
           }
+
           if (item._path
               && targetLink
               && targetLink.isLink()
@@ -833,7 +862,7 @@ export default Vue.extend({
           .position(100, 200)
           .addTo(graph)
       this.ObjectMapperRecord = new ObjectMapperRecord(
-          ['edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child', 'edit-function'],
+          ['edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child-to-object', 'add-child-to-array', 'edit-function'],
           this.objectMapperSchema)
           .setName(i18n.methods.t('MappingSchema'))
           .position(550, 100)
@@ -941,14 +970,14 @@ export default Vue.extend({
         this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
       });
 
-      paper.on('element:contextmenu', (elementView, evt) => {
-        const model = elementView.model;
-        const tools = model.getTools();
-        if (tools) {
-          evt.stopPropagation();
-          this.elementActionPicker(elementView.el, elementView, tools);
-        }
-      });
+      // paper.on('element:contextmenu', (elementView, evt) => {
+      //   const model = elementView.model;
+      //   const tools = model.getTools();
+      //   if (tools) {
+      //     evt.stopPropagation();
+      //     this.elementActionPicker(elementView.el, elementView, tools);
+      //   }
+      // });
 
       paper.on('element:magnet:contextmenu', (elementView, evt, magnet) => {
         const model = elementView.model;

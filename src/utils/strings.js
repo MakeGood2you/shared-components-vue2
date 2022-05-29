@@ -1,14 +1,20 @@
-export function _replaceAll(string, target, replaceTo){
+export function _replaceAll(string, target, replaceTo) {
     if (string.indexOf(target) !== -1) {
         string = string.replaceAll(target, replaceTo)
     }
     return string
 }
 
-export function cutStringFromSymbol(string='', symbol, end){
+export function cutStringFromSymbol(string = '', symbol, end) {
     end = end ? end : string.length
-    const index =  string.indexOf(symbol)
+    const index = string.indexOf(symbol)
     return string.substring(index + 1, end)
+}
+
+export function deleteStringFromSymbol(string = '', symbol, start) {
+    start = start ? start : 0
+    const index = string.indexOf(symbol)
+    if (index !== -1) return string.substring(start, index)
 }
 
 export function createKeyValueString(key, value) {

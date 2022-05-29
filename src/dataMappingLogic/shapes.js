@@ -1,5 +1,5 @@
 import { shapes, util } from '@OtailO-recommerce/rappid';
-import { _replaceAll, cutStringFromSymbol, createKeyValueString } from '../utils/strings';
+import { _replaceAll, cutStringFromSymbol, createKeyValueString, deleteStringFromSymbol } from '../utils/strings';
 
 export class Link extends shapes.standard.Link {
     defaults() {
@@ -159,7 +159,29 @@ export class Record extends shapes.standard.HeaderedRecord {
         return this.attr(['headerLabel', 'textWrap', 'text'], name, opt);
     }
 
-    getDefaultItem(itemId, element) {
+    getNewChildId(id, counter = 0) {
+        const newId = deleteStringFromSymbol(id, '_') || id
+        let result = `${newId}_${counter}`
+        if (!this.item(result)) {
+            return result
+        } else {
+            return this.getNewChildId(result, ++counter)
+        }
+    }
+
+    getDefaultChild(itemId, element, icon) {
+        icon = icon ? `mapper/${icon.toLowerCase()}.svg` : undefined
+        const id = this.getNewChildId(itemId)
+        return {
+            id,
+            label: `new_item_${cutStringFromSymbol(id, '_')}`,
+            icon: 'mapper/document.svg',
+            _type: 'Leaf'
+        }
+
+    }
+
+    getDefaultItem(itemId, element, icon) {
         const item = itemId && element ? element.item(itemId) : '';
         return {
             id: itemId ? this.getNewItemId(itemId) : util.uuid(),
@@ -179,9 +201,10 @@ export class Record extends shapes.standard.HeaderedRecord {
         return [
             { action: 'edit', content: 'Edit Item' },
             { action: 'edit-function', content: 'Edit User Function' },
-            { action: 'add-child', content: 'Add Child' },
-            { action: 'add-next-sibling', content: 'Add Next Sibling' },
-            { action: 'add-prev-sibling', content: 'Add Prev Sibling' },
+            { action: 'add-child-to-array', content: 'Add child to Array' },
+            { action: 'add-child-to-object', content: 'Add child to Object' },
+            { action: 'add-next-sibling', content: 'Add next sibling' },
+            { action: 'add-prev-sibling', content: 'Add prev sibling' },
             { action: 'remove', content: warning('Remove Item') }
         ].filter(tool => this.allowedTools.includes(tool.action));
     }
@@ -389,32 +412,38 @@ export class ObjectMapperRecord extends Record {
                 defaultValue: true
             },
             _default: {
+                // when: { eq: { 'hasDefault': true } },
                 label: 'default',
                 type: 'content-editable',
                 // defaultValue: ''
             },
             _type: {
                 label: 'type',
-                type: 'content-editable'
+                type: 'select',
+                options: [
+                    'Array',
+                    'Object',
+                    'Leaf'
+                ]
             },
             _pathLevelUp: {
                 label: 'Path Level Up',
                 type: 'content-editable'
             },
-            icon: {
-                label: 'Icon',
-                type: 'select-button-group',
-                options: [{
-                    value: 'mapper/array.svg',
-                    content: '<img height="42px" src="mapper/array.svg"/>'
-                }, {
-                    value: 'mapper/document.svg',
-                    content: '<img height="42px" src="mapper/document.svg"/>'
-                }, {
-                    value: 'mapper/object.svg',
-                    content: '<img height="42px" src="mapper/object.svg"/>'
-                }]
-            }
+            // icon: {
+            //     label: 'Icon',
+            //     type: 'select-button-group',
+            //     options: [{
+            //         value: 'mapper/array.svg',
+            //         content: '<img height="42px" src="mapper/array.svg"/>'
+            //     }, {
+            //         value: 'mapper/document.svg',
+            //         content: '<img height="42px" src="mapper/document.svg"/>'
+            //     }, {
+            //         value: 'mapper/object.svg',
+            //         content: '<img height="42px" src="mapper/object.svg"/>'
+            //     }]
+            // }
 
         }
     }
