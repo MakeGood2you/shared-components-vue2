@@ -6,6 +6,7 @@ export default {
   remove:'Remove',
   confirm:'Confirm',
   cancel: 'Cancel',
+  ok: 'OK',
   messages: {
     deleteLink: 'Are you sure you want to delete this link ?',
     replaceLink: 'Are you sure you want to replace this ?',

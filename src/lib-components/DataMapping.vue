@@ -15,6 +15,7 @@ import i18n, { getLanguage } from '../services/i18n.vue.mixin';
 
 import Vue from 'vue';
 
+
 // import {
 //   getLinkBySourcePort,
 //   getLinkByTargetPort,
@@ -58,6 +59,11 @@ export default Vue.extend({
       type: String,
       default: 'en-US'
     },
+
+    error: {
+      type: Error,
+      default: undefined,
+    },
   },
 
   data: () => ({
@@ -78,6 +84,7 @@ export default Vue.extend({
 
     //ALL Links in graph
     links: [],
+    tempData: {},
   }),
   methods: {
     showElementTools(elementView) {
@@ -185,7 +192,7 @@ export default Vue.extend({
         cell: element,
         live: false,
         inputs: util.setByPath({}, itemPath, config),
-        title:'(data, context) => { Your Code is here }'
+        title: '(data, context) => { Your Code is here }'
       });
       inspector.render();
       inspector.el.style.position = 'relative';
@@ -202,7 +209,7 @@ export default Vue.extend({
       const dialog = this.createDialog({
         width: 300,
         title: 'Edit Item',
-        closeButton: true,
+        closeButton: false,
         content: inspector.el,
         buttons: ['cancel', 'change']
       });
@@ -211,6 +218,7 @@ export default Vue.extend({
 
       dialog.on({
         'action:cancel': function () {
+          this.setPrevValidUserFunction(itemId)
           inspector.remove();
           dialog.close();
         }.bind(this),
@@ -218,6 +226,7 @@ export default Vue.extend({
           inspector.updateCell()
           this.actionType(type, element, itemPath, itemId, inspector)
           this.liveUpdateSchema()
+          this.tempData.itemId = itemId
           inspector.remove();
           dialog.close();
         }.bind(this)
@@ -232,7 +241,29 @@ export default Vue.extend({
         selection.addRange(range);
       }
     },
+    //save the valid prev _transformerCode in _prevValidTransformerCode in same cell
+    savePrevValidUserFunction(itemId) {
+      const item = this.ObjectMapperRecord.item(itemId)
+      if (item && ![null, undefined, ''].includes(item._transformerCode)) {
+        item._prevValidTransformerCode = item._transformerCode
+        this.ObjectMapperRecord.item(itemId, item)
+      }
+    },
 
+    //set the valid prev _prevValidTransformerCode in _transformerCode in same cell
+    setPrevValidUserFunction(itemId) {
+      const item = this.ObjectMapperRecord.item(itemId)
+
+      const value = item._prevValidTransformerCode || ''
+
+      const newItem = { _transformerCode: value }
+
+      const result = this.ObjectMapperRecord.item(itemId, newItem) //set the prev valid _transformerCode
+
+      if (value === '') this.removeDecorator(this.ObjectMapperRecord, itemId)
+
+      // this.liveUpdateSchema()
+    },
     renderDecorators(element) {
       const decorators = element.get('decorators');
       debugger
@@ -273,7 +304,7 @@ export default Vue.extend({
           if (['', undefined, null].includes(inputText)) {
             this.removeDecorator(element, itemId)
           } else
-          this.addDecorator(element, itemId)
+            this.addDecorator(element, itemId)
           break
 
         case 'item':
@@ -420,7 +451,6 @@ export default Vue.extend({
     liveUpdateSchema() {
       if (!this.isLiveUpdate) return
       const schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
-
       this.$emit('mapObject', {
         schema: schema.$root,
         input: this.inputJson,
@@ -535,6 +565,13 @@ export default Vue.extend({
                 content: `<span style="color:#fe854f">${i18n.methods.t('confirm')}</span>`,
                 action: 'confirm'
               })
+              break
+            case 'ok':
+              result.push({
+                content: `<span style="color:#fe854f">${i18n.methods.t('ok')}</span>`,
+                action: 'ok'
+              })
+              break
           }
         })
         return result
@@ -1008,7 +1045,8 @@ export default Vue.extend({
 
       const newShape = new ObjectMapperRecord([], newData)
       this.ObjectMapperRecord.recordUpdate(this.ObjectMapperRecord.attributes.items[0], newShape.attributes.items[0])
-      // this.ObjectMapperRecord.recordUpdate(this.InputRecord.attributes.items[0], [this.ObjectMapperRecord.objectMapperSchema2Shape(newData)])
+
+      this.savePrevValidUserFunction(this.tempData.itemId) //save the valid prev _transformerCode
 
       // the new objectMapper record
       let newObjectMapperSchemaItems = this.ObjectMapperRecord.attributes.items[0]
@@ -1035,6 +1073,25 @@ export default Vue.extend({
     },
 
     lang(newData, oldData) {
+
+    },
+
+    error(newData, oldData) {
+      const dialog = this.createDialog({
+        // width: options.width || 300,
+        title: '<span style="color:#dc6a6a; font-weight: bold;">Error !</span>',
+        closeButton: false,
+        content: `Something went wrong.\n ${newData}`,
+        buttons: ['ok']
+      })
+      dialog.open();
+
+      dialog.on({
+        'action:ok': function () {
+          this.editUserFunctionAction(this.ObjectMapperRecord, this.tempData.itemId)
+          dialog.close();
+        }.bind(this),
+      });
 
     },
     immediate: true,
