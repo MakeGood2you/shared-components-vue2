@@ -6,11 +6,15 @@ export function _replaceAll(string, target, replaceTo) {
 }
 
 export function cutStringFromSymbol(string = '', symbol, isReverse = false, end) {
-    end = end ? end : string.length
-
     const index = isReverse ? string.lastIndexOf(symbol) : string.indexOf(symbol)
 
-    return string.substring(index + 1, end)
+    if (index === -1) return string
+
+    end = end ? end : string.length
+
+    const symbolLength = symbol.length > 1 ? symbol.length : 1
+
+    return string.substring(index + symbolLength, end)
 }
 
 

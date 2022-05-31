@@ -262,8 +262,10 @@ export default Vue.extend({
           dialog.close();
         }.bind(this),
         'action:change': function () {
+          const prevItem = element.getItemByPath(element.attributes.items, [...itemPath])
           inspector.updateCell()
-          this.actionType(type, element, itemPath, itemId, inspector)
+
+          this.actionType(type, element, itemPath, itemId, prevItem, inspector)
           this.liveUpdateSchema()
           this.tempData.itemId = itemId
           inspector.remove();
@@ -336,7 +338,8 @@ export default Vue.extend({
       }
     },
 
-    actionType(type, element, itemPath, itemId, inspector) {
+    actionType(type, element, itemPath, itemId, prevItem, inspector) {
+
       switch (type) {
         case 'user-function':
           //
@@ -348,10 +351,72 @@ export default Vue.extend({
           break
 
         case 'item':
-          const prevItem = element.getItemByPath(element.attributes.items, [...itemPath])
-          inspector.updateCell();
           const item = element.getItemByPath(element.attributes.items, [...itemPath])
 
+          if (prevItem._type !== item._type) {
+            switch (item._type) {
+              case 'Leaf':
+                if (['Array', 'Object'].includes(prevItem._type)) {
+                  if (prevItem.items.length > 0) {
+                    let dialog = this.createDialog({
+                      // title: i18n.methods.t('issue'),
+                      title: 'Confirmation',
+                      closeButton: true,
+                      content: 'Are you sure you want delete all children of this Node?',
+                      buttons: ['cancel', 'confirm']
+                    })
+                    dialog.open()
+                    dialog.on({
+                      'action:cancel': function () {
+                        element.item(itemId, { ...prevItem })
+                        dialog.close();
+                      },
+                      'action:confirm': function () {
+
+                        console.log(item)
+                        element.item(itemId, {
+                          ...item,
+                          items:[],
+                          icon: 'mapper/document.svg',
+                        })
+
+                        dialog.close();
+                      }
+                    })
+                  } else {
+                    console.log('else if items is empty its can be change')
+                  }
+                  return
+                } else {
+                  console.log('else is pass to make change on type')
+                }
+                console.log('Leaf ==>', item._type)
+                break;
+
+              case 'Array':
+              case 'Object':
+                if (prevItem._type !== 'Leaf') {
+                  element.item(itemId, { ...prevItem })
+                  let dialog = this.createDialog({
+                    // title: i18n.methods.t('issue'),
+                    title: 'issue',
+                    closeButton: true,
+                    content: 'you can change type only to leaf',
+                    buttons: ['ok']
+                  })
+                  dialog.open()
+                  dialog.on({
+                    'action:ok': function () {
+                      dialog.close();
+                    }
+                  })
+                  return
+                } else {
+                  console.log('else is pass to make change on type')
+                }
+                break;
+            }
+          }
           if (prevItem.label !== item.label) {
             item.id = element.getNewItemId(item.id, item.label)
             element.item(prevItem.id, item)
@@ -651,6 +716,7 @@ export default Vue.extend({
           //remove the target link
           link.remove();
           // remove the source link
+          this.removeLinks(link.attributes.target.port)
           this.removeTargetLinkBySourcePort(this.OutputRecord, link.attributes.target.port)
 
           this.editObjectMapperRecord(link.attributes.target.port)
@@ -928,21 +994,22 @@ export default Vue.extend({
       });
 
       paper.on('link:connect', (linkView, evt, elementViewConnected, magnet, arrowhead) => {
+        const eventName = 'connect'
         const element = elementViewConnected.model;
         const link = linkView.model
         const validation = this.checkLinksRules('link:connect', linkView, element, arrowhead)
         if (!validation.isValid) {
           return
         }
-        let sourceId = linkView.model.attributes.source.port
+        let sourceId = cutStringFromSymbol(linkView.model.attributes.source.port, '].')// cut the end of index string to be equal to source id
+
         const itemId = elementViewConnected.findAttribute('item-id', magnet)
-        sourceId = _replaceAll(sourceId, "[0]", "[*]")
+        // sourceId = _replaceAll(sourceId, "[0]", "[*]")
         evt.stopPropagation();
 
         const updateData = {
           _path: '.' + sourceId
         }
-        const eventName = 'connect'
 
         this.editRecord(element, linkView, itemId, updateData, eventName);
       });

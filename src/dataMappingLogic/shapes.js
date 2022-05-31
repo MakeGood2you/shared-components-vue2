@@ -269,7 +269,7 @@ export class ObjectMapperRecord extends Record {
     objectMapperSchemaShape2Schema(shape = this.attributes.items[0][0]) {
         switch (shape._type) {
             case 'Object':
-                const result = shape.items.map((_item) => this.objectMapperSchemaShape2Schema(_item)).reduce(
+                const result = shape.items?.map((_item) => this.objectMapperSchemaShape2Schema(_item)).reduce(
                     (previousValue, currentValue) => {
                         return Object.assign(previousValue, currentValue)
                     }, {})
@@ -286,7 +286,7 @@ export class ObjectMapperRecord extends Record {
             case'Array':
                 return {
                     [shape.label]: {
-                        _element: shape.items.map((item) => this.objectMapperSchemaShape2Schema(item)).reduce(
+                        _element: shape.items?.map((item) => this.objectMapperSchemaShape2Schema(item)).reduce(
                             (previousValue, currentValue) => {
                                 return Object.assign(previousValue, currentValue)
                             }, { ...shape.elementAttributes }),
@@ -403,7 +403,8 @@ export class ObjectMapperRecord extends Record {
         const inputIds = this.getValuesFromShape(inputShape)
         const result = []
         objectMapperIds.map((link) => {
-            let source = cutStringFromSymbol(link['_absPath'], '.')
+            // let source = cutStringFromSymbol(link['_absPath'], '.')
+            let source = link['_absPath']
 
             source = _replaceAll(source, '[*]', '[0]')
             if (inputIds.includes(source)) {
