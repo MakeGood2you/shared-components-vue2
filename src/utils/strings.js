@@ -5,11 +5,14 @@ export function _replaceAll(string, target, replaceTo) {
     return string
 }
 
-export function cutStringFromSymbol(string = '', symbol, end) {
+export function cutStringFromSymbol(string = '', symbol, isReverse = false, end) {
     end = end ? end : string.length
-    const index = string.indexOf(symbol)
+
+    const index = isReverse ? string.lastIndexOf(symbol) : string.indexOf(symbol)
+
     return string.substring(index + 1, end)
 }
+
 
 export function deleteStringFromSymbol(string = '', symbol, start) {
     start = start ? start : 0

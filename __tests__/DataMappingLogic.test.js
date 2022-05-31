@@ -460,311 +460,311 @@
 //
 //
 //     }
-//     const schema2 = {
-//         "_type": "Object",
-//         "_path": "data",
-//         "order": {
-//             "id": {
-//                 "_path": ".order_no",
-//                 "_default": "",
-//                 "_type": "Leaf",
-//
-//
-//             },
-//             "order_id": {
-//                 "_path": ".order_no",
-//                 "_default": "",
-//                 "_type": "Leaf",
-//             },
-//             "created_at": {
-//                 "_path": ".creation_date",
-//                 "_default": "",
-//                 "_type": "Leaf",
-//             },
-//             "shipped_at": {
-//                 "_path": ".creation_date",
-//                 "_default": "",
-//                 "_type": "Leaf",
-//
-//
-//             },
-//             "return_due_at": {
-//                 "_path": ".creation_date",
-//                 "_default": "",
-//                 "_type": "Leaf",
-//
-//
-//             },
-//             "currency": {
-//                 "_path": ".currency",
-//                 "_default": "",
-//                 "_type": "Leaf",
-//
-//
-//             },
-//             "basestore": {
-//                 "_default": "Returnello",
-//                 "_type": "Leaf"
-//             },
-//             "channel": {
-//                 "_default": "WEB",
-//                 "_type": "Leaf"
-//             },
-//             "order_items": {
-//                 "_type": "Array",
-//                 "_path": ".product_items",
-//                 "_element": {
-//                     "_type": "Object",
-//                     "sku": {
-//                         "_path": ".product_id",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "item_id": {
-//                         "_path": ".item_id",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "id": {
-//                         "_path": ".product_id",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "quantity": {
-//                         "_path": ".quantity",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "full_price": {
-//                         "_path": ".c_otailoAttribtues.price",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "sold_price": {
-//                         "_path": ".c_otailoAttribtues.price.sales.value",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "image_url": {
-//                         "_path": ".c_otailoAttribtues.images.small[0].url",
-//                         "_default": "",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "name": {
-//                         "_path": ".product_name",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "description": {
-//                         "_path": ".product_name",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "created_at": {
-//                         "_path": "data.creation_date",
-//                         "_default": "",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "shipped_at": {
-//                         "_path": "data.creation_date",
-//                         "_default": "",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "return_due_at": {
-//                         "_path": "data.creation_date",
-//                         "_default": "",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "is_returnable": {
-//                         "_default": true,
-//                         "_type": "Leaf"
-//                     },
-//                     "color": {
-//                         "_path": ".c_otailoAttribtues.variationAttributes",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "size": {
-//                         "_path": ".c_otailoAttribtues.variationAttributes",
-//                         "_type": "Leaf",
-//
-//
-//                     },
-//                     "returns_info": {
-//                         "c_otailoTrackingID": {
-//                             "_path": ".c_otailoTrackingID",
-//                             "_type": "Leaf",
-//
-//
-//                         },
-//                         "c_otailoTrackingURL": {
-//                             "_path": ".c_otailoTrackingURL",
-//                             "_type": "Leaf",
-//
-//
-//                         },
-//                         "c_otailoReturnReason": {
-//                             "_path": ".c_otailoReturnReason",
-//                             "_type": "Leaf",
-//
-//
-//                         },
-//                         "c_otailoReturnType": {
-//                             "_path": ".c_otailoReturnType",
-//                             "_type": "Leaf",
-//
-//
-//                         },
-//                         "c_otailoStatus": {
-//                             "_path": ".c_otailoStatus",
-//                             "_type": "Leaf",
-//
-//
-//                         },
-//                         "_type": "Object"
-//                     }
-//                 },
-//
-//
-//             },
-//             "_type": "Object"
-//         },
-//
-//
-//     }
-//     const inputJson = {
-//         order_no: 'ORD487',
-//         creation_date: '2022-02-27',
-//         currency: '$',
-//         product_items: [
-//             {
-//                 product_id: 123123,
-//                 item_id: 231231,
-//                 quantity: 25,
-//                 c_otailoAttribtues: {
-//                     price: {
-//                         sales: {
-//                             value: 49.9,
-//                         },
-//                         list: {
-//                             value: 99.9,
-//                         },
-//                     },
-//                     variationAttributes: [
-//                         {
-//                             id: 'size',
-//                             values: [
-//                                 {
-//                                     selected: true,
-//                                     displayValue: 'small',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'medium',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'large',
-//                                 },
-//                             ],
-//                         }, {
-//                             id: 'color',
-//                             values: [
-//                                 {
-//                                     selected: true,
-//                                     displayValue: 'red',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'blue',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'yellow',
-//                                 },
-//                             ],
-//                         },
-//                     ],
-//                     images: {
-//                         small: [{ url: 'https://imageUrlSmall.png' }],
-//                     },
-//                 },
-//                 product_name: 'Air max',
-//                 c_otailoTrackingID: 'KLHKJ213L1JJ2K',
-//                 c_otailoTrackingURL: 'https://www.makegood.co.il',
-//                 c_otailoReturnReason: 'do now match to my legs',
-//                 c_otailoReturnType: 'Object',
-//                 c_otailoStatus: 'pending',
-//             }, {
-//                 product_id: 123123,
-//                 item_id: 231231,
-//                 quantity: 25,
-//                 c_otailoAttribtues: {
-//                     price: {
-//                         sales: {
-//                             value: 49.9,
-//                         },
-//                         list: {
-//                             value: 99.9,
-//                         },
-//                     },
-//                     variationAttributes: [
-//                         {
-//                             id: 'size',
-//                             values: [
-//                                 {
-//                                     selected: true,
-//                                     displayValue: 'small',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'medium',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'large',
-//                                 },
-//                             ],
-//                         }, {
-//                             id: 'color',
-//                             values: [
-//                                 {
-//                                     selected: true,
-//                                     displayValue: 'red',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'blue',
-//                                 }, {
-//                                     selected: false,
-//                                     displayValue: 'yellow',
-//                                 },
-//                             ],
-//                         },
-//                     ],
-//                     images: {
-//                         small: [{ url: 'https://imageUrlSmall.png' }],
-//                     },
-//                 },
-//                 product_name: 'Air max',
-//                 c_otailoTrackingID: 'KLHKJ213L1JJ2K',
-//                 c_otailoTrackingURL: 'https://www.makegood.co.il',
-//                 c_otailoReturnReason: 'do now match to my legs',
-//                 c_otailoReturnType: 'Object',
-//                 c_otailoStatus: 'pending',
-//             },
-//         ],
-//     }
+    const schema2 = {
+        "_type": "Object",
+        "_path": "data",
+        "order": {
+            "id": {
+                "_path": ".order_no",
+                "_default": "",
+                "_type": "Leaf",
+
+
+            },
+            "order_id": {
+                "_path": ".order_no",
+                "_default": "",
+                "_type": "Leaf",
+            },
+            "created_at": {
+                "_path": ".creation_date",
+                "_default": "",
+                "_type": "Leaf",
+            },
+            "shipped_at": {
+                "_path": ".creation_date",
+                "_default": "",
+                "_type": "Leaf",
+
+
+            },
+            "return_due_at": {
+                "_path": ".creation_date",
+                "_default": "",
+                "_type": "Leaf",
+
+
+            },
+            "currency": {
+                "_path": ".currency",
+                "_default": "",
+                "_type": "Leaf",
+
+
+            },
+            "basestore": {
+                "_default": "Returnello",
+                "_type": "Leaf"
+            },
+            "channel": {
+                "_default": "WEB",
+                "_type": "Leaf"
+            },
+            "order_items": {
+                "_type": "Array",
+                "_path": ".product_items",
+                "_element": {
+                    "_type": "Object",
+                    "sku": {
+                        "_path": ".product_id",
+                        "_type": "Leaf",
+
+
+                    },
+                    "item_id": {
+                        "_path": ".item_id",
+                        "_type": "Leaf",
+
+
+                    },
+                    "id": {
+                        "_path": ".product_id",
+                        "_type": "Leaf",
+
+
+                    },
+                    "quantity": {
+                        "_path": ".quantity",
+                        "_type": "Leaf",
+
+
+                    },
+                    "full_price": {
+                        "_path": ".c_otailoAttribtues.price",
+                        "_type": "Leaf",
+
+
+                    },
+                    "sold_price": {
+                        "_path": ".c_otailoAttribtues.price.sales.value",
+                        "_type": "Leaf",
+
+
+                    },
+                    "image_url": {
+                        "_path": ".c_otailoAttribtues.images.small[0].url",
+                        "_default": "",
+                        "_type": "Leaf",
+
+
+                    },
+                    "name": {
+                        "_path": ".product_name",
+                        "_type": "Leaf",
+
+
+                    },
+                    "description": {
+                        "_path": ".product_name",
+                        "_type": "Leaf",
+
+
+                    },
+                    "created_at": {
+                        "_path": "data.creation_date",
+                        "_default": "",
+                        "_type": "Leaf",
+
+
+                    },
+                    "shipped_at": {
+                        "_path": "data.creation_date",
+                        "_default": "",
+                        "_type": "Leaf",
+
+
+                    },
+                    "return_due_at": {
+                        "_path": "data.creation_date",
+                        "_default": "",
+                        "_type": "Leaf",
+
+
+                    },
+                    "is_returnable": {
+                        "_default": true,
+                        "_type": "Leaf"
+                    },
+                    "color": {
+                        "_path": ".c_otailoAttribtues.variationAttributes",
+                        "_type": "Leaf",
+
+
+                    },
+                    "size": {
+                        "_path": ".c_otailoAttribtues.variationAttributes",
+                        "_type": "Leaf",
+
+
+                    },
+                    "returns_info": {
+                        "c_otailoTrackingID": {
+                            "_path": ".c_otailoTrackingID",
+                            "_type": "Leaf",
+
+
+                        },
+                        "c_otailoTrackingURL": {
+                            "_path": ".c_otailoTrackingURL",
+                            "_type": "Leaf",
+
+
+                        },
+                        "c_otailoReturnReason": {
+                            "_path": ".c_otailoReturnReason",
+                            "_type": "Leaf",
+
+
+                        },
+                        "c_otailoReturnType": {
+                            "_path": ".c_otailoReturnType",
+                            "_type": "Leaf",
+
+
+                        },
+                        "c_otailoStatus": {
+                            "_path": ".c_otailoStatus",
+                            "_type": "Leaf",
+
+
+                        },
+                        "_type": "Object"
+                    }
+                },
+
+
+            },
+            "_type": "Object"
+        },
+
+
+    }
+    const inputJson = {
+        order_no: 'ORD487',
+        creation_date: '2022-02-27',
+        currency: '$',
+        product_items: [
+            {
+                product_id: 123123,
+                item_id: 231231,
+                quantity: 25,
+                c_otailoAttribtues: {
+                    price: {
+                        sales: {
+                            value: 49.9,
+                        },
+                        list: {
+                            value: 99.9,
+                        },
+                    },
+                    variationAttributes: [
+                        {
+                            id: 'size',
+                            values: [
+                                {
+                                    selected: true,
+                                    displayValue: 'small',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'medium',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'large',
+                                },
+                            ],
+                        }, {
+                            id: 'color',
+                            values: [
+                                {
+                                    selected: true,
+                                    displayValue: 'red',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'blue',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'yellow',
+                                },
+                            ],
+                        },
+                    ],
+                    images: {
+                        small: [{ url: 'https://imageUrlSmall.png' }],
+                    },
+                },
+                product_name: 'Air max',
+                c_otailoTrackingID: 'KLHKJ213L1JJ2K',
+                c_otailoTrackingURL: 'https://www.makegood.co.il',
+                c_otailoReturnReason: 'do now match to my legs',
+                c_otailoReturnType: 'Object',
+                c_otailoStatus: 'pending',
+            }, {
+                product_id: 123123,
+                item_id: 231231,
+                quantity: 25,
+                c_otailoAttribtues: {
+                    price: {
+                        sales: {
+                            value: 49.9,
+                        },
+                        list: {
+                            value: 99.9,
+                        },
+                    },
+                    variationAttributes: [
+                        {
+                            id: 'size',
+                            values: [
+                                {
+                                    selected: true,
+                                    displayValue: 'small',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'medium',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'large',
+                                },
+                            ],
+                        }, {
+                            id: 'color',
+                            values: [
+                                {
+                                    selected: true,
+                                    displayValue: 'red',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'blue',
+                                }, {
+                                    selected: false,
+                                    displayValue: 'yellow',
+                                },
+                            ],
+                        },
+                    ],
+                    images: {
+                        small: [{ url: 'https://imageUrlSmall.png' }],
+                    },
+                },
+                product_name: 'Air max',
+                c_otailoTrackingID: 'KLHKJ213L1JJ2K',
+                c_otailoTrackingURL: 'https://www.makegood.co.il',
+                c_otailoReturnReason: 'do now match to my legs',
+                c_otailoReturnType: 'Object',
+                c_otailoStatus: 'pending',
+            },
+        ],
+    }
 //
 //     const objectMapperTransformer = new ObjectMapper(schema)
 //     objectMapperTransformer.compile()
@@ -775,3 +775,51 @@
 //     console.log(result)
 //     expect(schema2).toEqual(result.data);
 // })
+
+
+const schema = {
+    "$root": {
+        "coordinates": {
+            "lat": { "_path": ".lat", "_type": "Leaf" },
+            "long": { "_path": ".long", "_type": "Leaf" },
+            "_type": "Object"
+        },
+        "name": { "_path": ".name", "_type": "Leaf" },
+        "address": {
+            "country": {
+                "new_item_0": { "_path": ".country", "_type": "Leaf" },
+                "new_item_1": { "_path": ".country_code", "_type": "Leaf" },
+                "_path": "",
+                "_type": "Object"
+            },
+            "country_code": {
+                "_element": {
+                    "new_item_0": { "_path": ".street", "_type": "Leaf" },
+                    "new_item_1": { "_path": ".street", "_type": "Leaf" }
+                }, "_path": "", "_type": "Array"
+            },
+            "street": { "_path": ".street", "_default": "asasasassa", "_type": "Leaf" },
+            "street2": { "_path": ".street2", "_type": "Leaf" },
+            "city": { "_path": ".city", "_type": "Leaf" },
+            "state": { "_path": ".state", "_type": "Leaf" },
+            "zip_code": { "_path": ".zip_code", "_type": "Leaf" },
+            "phone_number": { "_path": ".phone_number", "_type": "Leaf" },
+            "_type": "Object"
+        },
+        "_type": "Object"
+    }
+}
+const output = {
+    "coordinates": { "lat": "52.65465", "long": "51.54455" },
+    "name": "test1",
+    "address": {
+        "country": { "new_item_0": "London", "new_item_1": "GB" },
+        "country_code": "GB",
+        "street": "107/109 High Street",
+        "street2": "",
+        "city": "london",
+        "state": "GB",
+        "zip_code": "AB43GI",
+        "phone_number": "566523584"
+    }
+}

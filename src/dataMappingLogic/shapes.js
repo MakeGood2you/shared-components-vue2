@@ -159,26 +159,28 @@ export class Record extends shapes.standard.HeaderedRecord {
         return this.attr(['headerLabel', 'textWrap', 'text'], name, opt);
     }
 
-    getNewChildId(id, counter = 0) {
-        const newId = deleteStringFromSymbol(id, '_') || id
-        let result = `${newId}_${counter}`
-        if (!this.item(result)) {
-            return result
-        } else {
-            return this.getNewChildId(result, ++counter)
-        }
+    getNewChildId(id, element, counter = 0) {
+        return `${id}._new_item_${util.uuid()}`
+        // const newId = deleteStringFromSymbol(id, '_') || id
+        // let result = `${newId}._new_item_${util.uuid()}`
+        // const item = element.item(result)
+        // if (!item) {
+        //     return result
+        // } else {
+        //     return this.getNewChildId(result, element, ++counter)
+        // }
     }
 
     getDefaultChild(itemId, element, icon) {
         icon = icon ? `mapper/${icon.toLowerCase()}.svg` : undefined
-        const id = this.getNewChildId(itemId)
+        const id = this.getNewChildId(itemId, element)
+        const item = element.item(itemId)
         return {
             id,
-            label: `new_item_${cutStringFromSymbol(id, '_')}`,
+            label: `new_item_${item && item.items ? item.items.length : 0}`,
             icon: 'mapper/document.svg',
             _type: 'Leaf'
         }
-
     }
 
     getDefaultItem(itemId, element, icon) {
@@ -211,8 +213,9 @@ export class Record extends shapes.standard.HeaderedRecord {
 
     getTools() {
         return [
-            { action: 'add-item', content: 'Add Child' },
-            { action: 'remove', content: warning('Remove Record') }
+            { action: 'export-to-json', content: 'Export to JSON' },
+            // { action: 'add-item', content: 'Add Child' },
+            // { action: 'remove', content: warning('Remove Record') }
         ];
     }
 
@@ -231,6 +234,22 @@ export class Record extends shapes.standard.HeaderedRecord {
 
         const isItemVisible = this.isItemVisible(itemsIds[0].id)
     }
+
+    getItemByPath(items, path) {
+        const item = items
+        if (!path) return
+        if (path.length <= 1) {
+            return item
+        }
+        path.shift()
+        return this.getItemByPath(items[path[0]], path)
+    }
+
+    findItemById(itemId, element = this) {
+        const path = element.getItemPathArray(itemId)
+        const item = this.getItemByPath(element.attributes.items, path)
+        return item ? item : null
+    }
 }
 
 export class ObjectMapperRecord extends Record {
@@ -246,7 +265,8 @@ export class ObjectMapperRecord extends Record {
         // this.mappingSchema = schema
     }
 
-    objectMapperSchemaShape2Schema(shape) {
+    //shape have to be items[0][0]
+    objectMapperSchemaShape2Schema(shape = this.attributes.items[0][0]) {
         switch (shape._type) {
             case 'Object':
                 const result = shape.items.map((_item) => this.objectMapperSchemaShape2Schema(_item)).reduce(
@@ -521,7 +541,8 @@ export class JsonRecord extends Record {
         };
     }
 
-    transformShape2JSON(shape) {
+    //shape have to be items[0]
+    transformShape2JSON(shape = this.attributes.items[0]) {
         if (!Array.isArray(shape)) {
             const value = shape.value === null || shape.value === undefined ? this.transformShape2JSON(shape.items) : shape.value
             return shape.isArray ? value : { [shape.key]: value }

@@ -5,31 +5,17 @@
 <script>
 
 import { dia, elementTools, setTheme, shapes, ui, util } from '@OtailO-recommerce/rappid';
+
 import { InputRecord, Link, ObjectMapperRecord, OutputRecord } from '../dataMappingLogic/shapes';
 import { Decorator } from '../dataMappingLogic/highlighters';
 import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
 import { routerNamespace } from '../dataMappingLogic/routers';
 import { anchorNamespace } from '../dataMappingLogic/anchors';
+
 import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
+
 import i18n, { getLanguage } from '../services/i18n.vue.mixin';
-
 import Vue from 'vue';
-
-
-// import {
-//   getLinkBySourcePort,
-//   getLinkByTargetPort,
-//   removeLinks,
-//   createLinks,
-//   createHashLinks,
-//   removeSourceLinkByTargetPort,
-//   removeTargetLinkBySourcePort,
-//   createLink,
-//   showLinkTools,
-//   linkAction,
-//
-// } from '../dataMappingLogic/link-actions';
-// import {  } from '../dataMappingLogic/items-actions';
 
 export default Vue.extend({
   name: "DataMapping",
@@ -87,6 +73,7 @@ export default Vue.extend({
     tempData: {},
   }),
   methods: {
+
     showElementTools(elementView) {
       const element = elementView.model;
       const padding = util.normalizeSides(element.get('padding'));
@@ -133,45 +120,61 @@ export default Vue.extend({
         }.bind(this),
         'action:add-child-to-object': function () {
           toolbar.remove();
+
           element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
           if (element.isItemCollapsed(itemId))
             element.toggleItemCollapse(itemId);
-          const newData = {
+
+          this.updateItem(element, itemId, {
             icon: 'mapper/object.svg',
             _type: 'Object',
-          }
-          element.item(itemId, newData)
+            _path: ''
+          })
+
           const parent = element.item(itemId)
           console.log(parent)
-          this.liveUpdateSchema()
-        },
+
+        }.bind(this),
         'action:add-child-to-array': function () {
           toolbar.remove();
+
           element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
           if (element.isItemCollapsed(itemId))
             element.toggleItemCollapse(itemId);
-          const newData = {
+
+          this.updateItem(element, itemId, {
             icon: 'mapper/array.svg',
             _type: 'Array',
-          }
-          element.item(itemId, newData)
+            _path: ''
+          })
           const parent = element.item(itemId)
           console.log(parent)
-          this.liveUpdateSchema()
-        },
+        }.bind(this),
 
         'action:add-next-sibling': function () {
           toolbar.remove();
           element.addNextSibling(itemId, element.getDefaultItem(itemId, element));
-        },
+        }.bind(this),
         'action:add-prev-sibling': function () {
           toolbar.remove();
           element.addPrevSibling(itemId, element.getDefaultItem(itemId, element));
-        },
+        }.bind(this),
         'action:edit-function': function () {
           toolbar.remove();
           this.editUserFunctionAction(element, itemId);
-        }.bind(this)
+        }.bind(this),
+      });
+    },
+
+    doCopy(text) {
+      navigator.clipboard.writeText(text).then((e) => {
+        console.info('Copied!')
+        console.log(e)
+        /* Resolved - text copied to clipboard */
+      }, (e) => {
+        console.info('Failed to Copied!')
+        console.log(e)
+        /* Rejected - clipboard failed */
       });
     },
 
@@ -187,14 +190,24 @@ export default Vue.extend({
 
       toolbar.render();
       toolbar.on({
-        'action:remove': function () {
+        'action:export-to-json': function () {
           toolbar.remove();
-          element.remove();
-        },
-        'action:add-item': function () {
-          toolbar.remove();
-          element.addItemAtIndex(0, Infinity, element.getDefaultItem());
-        }
+          let copiedJson = null
+          if (element.id !== this.ObjectMapperRecord.id) {
+            copiedJson = element.transformShape2JSON()
+          } else {
+            copiedJson = this.ObjectMapperRecord.objectMapperSchemaShape2Schema()
+          }
+          this.doCopy(JSON.stringify(copiedJson))
+        }.bind(this)
+        // 'action:remove': function () {
+        //   toolbar.remove();
+        //   element.remove();
+        // },
+        // 'action:add-item': function () {
+        //   toolbar.remove();
+        //   element.addItemAtIndex(0, Infinity, element.getDefaultItem());
+        // }
       });
     },
 
@@ -290,6 +303,7 @@ export default Vue.extend({
 
       delete this.tempData.itemId
     },
+
     renderDecorators(element) {
       const decorators = element.get('decorators');
       debugger
@@ -334,9 +348,9 @@ export default Vue.extend({
           break
 
         case 'item':
-          const prevItem = this.getItemByPath(element.attributes.items, [...itemPath])
+          const prevItem = element.getItemByPath(element.attributes.items, [...itemPath])
           inspector.updateCell();
-          const item = this.getItemByPath(element.attributes.items, [...itemPath])
+          const item = element.getItemByPath(element.attributes.items, [...itemPath])
 
           if (prevItem.label !== item.label) {
             item.id = element.getNewItemId(item.id, item.label)
@@ -375,22 +389,14 @@ export default Vue.extend({
 
     },
 
-    getItemByPath(items, path) {
-      const item = items
-      if (path.length <= 1) {
-        return item
-      }
-      path.shift()
-      return this.getItemByPath(items[path[0]], path)
-    },
-
-    createLink(graph, link, sourceShape, targetShape) {
-      const newLink = new Link({
-        source: { id: sourceShape.id, port: link.source },
-        target: { id: targetShape.id, port: link.target },
-      })
-      newLink.addTo(graph)
-    },
+    // getItemByPath(items, path) {
+    //   const item = items
+    //   if (path.length <= 1) {
+    //     return item
+    //   }
+    //   path.shift()
+    //   return this.getItemByPath(items[path[0]], path)
+    // },
 
     editRecord(element, linkView, itemId, updateData, eventName) {
       if (!itemId) return;
@@ -667,8 +673,22 @@ export default Vue.extend({
       return connectedLinks.find(link => link.attributes.target.port === id)
     },
 
-    removeLinks(links) {
-      return links.forEach(link => link.remove())
+    findLinksById(id) {
+      const foundLinks = []
+      this.graph.getConnectedLinks(this.ObjectMapperRecord).forEach(link => {
+        if (link.attributes.target.port === id) {
+          foundLinks.push(link)
+        }
+
+        if (link.attributes.source.port === id) {
+          foundLinks.push(link)
+        }
+      })
+      return foundLinks
+    },
+
+    removeLinks(id) {
+      this.findLinksById(id).forEach(link => link.remove())
     },
     // create list of links
     createLinks(sourceShape, targetShape, source2TargetInstance, isAddToGraph = false, linksTarget = undefined) {
@@ -684,6 +704,15 @@ export default Vue.extend({
 
       return linksTarget ? links = links.concat(links, linksTarget) : links
     },
+
+    createLink(graph, link, sourceShape, targetShape) {
+      const newLink = new Link({
+        source: { id: sourceShape.id, port: link.source },
+        target: { id: targetShape.id, port: link.target },
+      })
+      newLink.addTo(graph)
+    },
+
     // create hash links /// by target && by source ///
     createHashLinks(sourceShape, targetShape, source2TargetInstance) {
       const bySource = {}
@@ -708,7 +737,6 @@ export default Vue.extend({
       if (sourceLink && sourceLink.isLink()) {
         sourceLink.remove();
       } else {
-
         console.error('NOT valid Link || no link found')
       }
     },
@@ -862,7 +890,7 @@ export default Vue.extend({
           .position(100, 200)
           .addTo(graph)
       this.ObjectMapperRecord = new ObjectMapperRecord(
-          ['edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child-to-object', 'add-child-to-array', 'edit-function'],
+          ['export-to-json', 'edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child-to-object', 'add-child-to-array', 'edit-function'],
           this.objectMapperSchema)
           .setName(i18n.methods.t('MappingSchema'))
           .position(550, 100)
@@ -970,14 +998,14 @@ export default Vue.extend({
         this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
       });
 
-      // paper.on('element:contextmenu', (elementView, evt) => {
-      //   const model = elementView.model;
-      //   const tools = model.getTools();
-      //   if (tools) {
-      //     evt.stopPropagation();
-      //     this.elementActionPicker(elementView.el, elementView, tools);
-      //   }
-      // });
+      paper.on('element:contextmenu', (elementView, evt) => {
+        const model = elementView.model;
+        const tools = model.getTools();
+        if (tools) {
+          evt.stopPropagation();
+          this.elementActionPicker(elementView.el, elementView, tools);
+        }
+      });
 
       paper.on('element:magnet:contextmenu', (elementView, evt, magnet) => {
         const model = elementView.model;
