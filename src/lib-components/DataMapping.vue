@@ -1,5 +1,7 @@
 <template>
-  <div class="canvas" ref="canvas"></div>
+  <div class="canvas" ref="canvas">
+
+  </div>
 </template>
 
 <script>
@@ -8,11 +10,12 @@ import { dia, elementTools, setTheme, shapes, ui, util } from '@OtailO-recommerc
 
 import { InputRecord, Link, ObjectMapperRecord, OutputRecord } from '../dataMappingLogic/shapes';
 import { Decorator } from '../dataMappingLogic/highlighters';
-import { Button, SourceArrowhead, TargetArrowhead } from '../dataMappingLogic/link-tools';
+import { Button, TargetArrowhead } from '../dataMappingLogic/link-tools';
 import { routerNamespace } from '../dataMappingLogic/routers';
 import { anchorNamespace } from '../dataMappingLogic/anchors';
 
-import { _replaceAll, cutStringFromSymbol } from '../utils/strings';
+import { createInspector, createDialog, } from '../dataMappingLogic/UI-utils';
+import { cutStringFromSymbol } from '../utils/strings';
 
 import i18n, { getLanguage } from '../services/i18n.vue.mixin';
 import Vue from 'vue';
@@ -50,6 +53,10 @@ export default Vue.extend({
       type: Error,
       default: undefined,
     },
+    allowedOMTools: {
+      type: Array,
+      default: () => ['export-to-json', 'edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child', 'edit-function'],
+    }
   },
 
   data: () => ({
@@ -58,10 +65,11 @@ export default Vue.extend({
     },
 
     graph: new dia.Graph({}, { cellNamespace: shapes }),
-    paper: dia.Paper,
-    scroller: ui.PaperScroller,
-    toolbarHeight: 50,
-    commandManager: dia.CommandManager,
+    paper: null,
+    scroller: null,
+    toolbar: null,
+    toolbarHeight: 40,
+    commandManager: null,
 
     //Records instance
     InputRecord: {},
@@ -70,10 +78,13 @@ export default Vue.extend({
 
     //ALL Links in graph
     links: [],
-    tempData: {},
+    tempData: {
+      itemId: null
+    },
+
+
   }),
   methods: {
-
     showElementTools(elementView) {
       const element = elementView.model;
       const padding = util.normalizeSides(element.get('padding'));
@@ -108,6 +119,8 @@ export default Vue.extend({
       toolbar.on({
         'action:remove': function () {
           element.startBatch('item-remove');
+
+          this.removeDecorator(element, itemId)
           element.removeItem(itemId);
           element.removeInvalidLinks();
           element.stopBatch('item-remove');
@@ -118,63 +131,85 @@ export default Vue.extend({
           toolbar.remove();
           this.itemEditAction(element, itemId);
         }.bind(this),
-        'action:add-child-to-object': function () {
+        'action:add-child': function () {
           toolbar.remove();
-
-          element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
-          if (element.isItemCollapsed(itemId))
-            element.toggleItemCollapse(itemId);
-
-          this.updateItem(element, itemId, {
-            icon: 'mapper/object.svg',
-            _type: 'Object',
-            _path: ''
-          })
 
           const parent = element.item(itemId)
-          console.log(parent)
+          if (!['Array', 'Object'].includes(parent._type)) {
+            const dialog = createDialog({
+              title: 'Error',
+              closeButton: true,
+              content: 'This Item not From type Array or Object',
+              buttons: ['cancel']
+            })
+            dialog.open()
+            dialog.on({
+              'action:cancel': function () {
+                dialog.remove();
+              }.bind(this),
+            })
+            return
+          }
+          const child = element.getDefaultChild(itemId, element, 'document')
+          element.addItemAtIndex(itemId, Infinity, child);
 
-        }.bind(this),
-        'action:add-child-to-array': function () {
-          toolbar.remove();
-
-          element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
+          this.itemEditAction(element, child.id)
           if (element.isItemCollapsed(itemId))
             element.toggleItemCollapse(itemId);
+          this.liveUpdateSchema()
+        }.bind(this),
+        // 'action:add-child-to-object': function () {
+        //   toolbar.remove();
+        //
+        //   element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
+        //   if (element.isItemCollapsed(itemId))
+        //     element.toggleItemCollapse(itemId);
+        //
+        //   this.updateItem(element, itemId, {
+        //     icon: 'mapper/object.svg',
+        //     _type: 'Object',
+        //     _path: ''
+        //   })
+        //
+        //   const parent = element.item(itemId)
+        //   console.log(parent)
+        //
+        // }.bind(this),
+        // 'action:add-child-to-array': function () {
+        //   toolbar.remove();
+        //
+        //   element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
+        //   if (element.isItemCollapsed(itemId))
+        //     element.toggleItemCollapse(itemId);
+        //
+        //   this.updateItem(element, itemId, {
+        //     icon: 'mapper/array.svg',
+        //     _type: 'Array',
+        //     _path: ''
+        //   })
+        //   const parent = element.item(itemId)
+        //   console.log(parent)
+        // }.bind(this),
 
-          this.updateItem(element, itemId, {
-            icon: 'mapper/array.svg',
-            _type: 'Array',
-            _path: ''
-          })
-          const parent = element.item(itemId)
-          console.log(parent)
-        }.bind(this),
+        'action:add-next-sibling':
+            function () {
+              toolbar.remove();
+              element.addNextSibling(itemId, element.getDefaultItem(itemId, element));
+              this.liveUpdateSchema()
+            }.bind(this),
 
-        'action:add-next-sibling': function () {
-          toolbar.remove();
-          element.addNextSibling(itemId, element.getDefaultItem(itemId, element));
-        }.bind(this),
-        'action:add-prev-sibling': function () {
-          toolbar.remove();
-          element.addPrevSibling(itemId, element.getDefaultItem(itemId, element));
-        }.bind(this),
-        'action:edit-function': function () {
-          toolbar.remove();
-          this.editUserFunctionAction(element, itemId);
-        }.bind(this),
-      });
-    },
+        'action:add-prev-sibling':
+            function () {
+              toolbar.remove();
+              element.addPrevSibling(itemId, element.getDefaultItem(itemId, element));
+              this.liveUpdateSchema()
+            }.bind(this),
 
-    doCopy(text) {
-      navigator.clipboard.writeText(text).then((e) => {
-        console.info('Copied!')
-        console.log(e)
-        /* Resolved - text copied to clipboard */
-      }, (e) => {
-        console.info('Failed to Copied!')
-        console.log(e)
-        /* Rejected - clipboard failed */
+        'action:edit-function':
+            function () {
+              toolbar.remove();
+              this.editUserFunctionAction(element, itemId);
+            }.bind(this),
       });
     },
 
@@ -192,30 +227,45 @@ export default Vue.extend({
       toolbar.on({
         'action:export-to-json': function () {
           toolbar.remove();
-          let copiedJson = null
-          if (element.id !== this.ObjectMapperRecord.id) {
-            copiedJson = element.transformShape2JSON()
-          } else {
-            copiedJson = this.ObjectMapperRecord.objectMapperSchemaShape2Schema()
-          }
-          this.doCopy(JSON.stringify(copiedJson))
+          this.copyRecordJSON({ element, ObjectMapperRecord: this.ObjectMapperRecord })
+        }.bind(this),
+        'action:import-json': function () {
+          toolbar.remove();
+          this.importJSONToElementAction(element, '$root')
         }.bind(this)
-        // 'action:remove': function () {
-        //   toolbar.remove();
-        //   element.remove();
-        // },
-        // 'action:add-item': function () {
-        //   toolbar.remove();
-        //   element.addItemAtIndex(0, Infinity, element.getDefaultItem());
-        // }
+      });
+    },
+
+    copyRecordJSON(opt) {
+      let copiedText = null
+      if (opt.element.id !== this.ObjectMapperRecord.id) {
+        copiedText = opt.element.transformShape2JSON()
+      } else {
+        copiedText = this.ObjectMapperRecord.objectMapperSchemaShape2Schema()
+      }
+      this.doCopy(JSON.stringify(copiedText))
+    },
+
+    doCopy(copiedText) {
+      navigator.clipboard.writeText(copiedText).then((e) => {
+        /* Resolved - text copied to clipboard */
+        console.info('Copied!')
+      }, (e) => {
+        console.info('Failed to Copied!')
       });
     },
 
     editUserFunctionAction(element, itemId) {
-
       const config = { _transformerCode: { type: 'content-editable', label: 'Transformer Code' } };
       const path = element.getItemPathArray(itemId);
       this.itemAction(element, config, path, itemId, 'user-function');
+    },
+
+    importJSONToElementAction(element, itemId) {
+      const config = { schema: { type: 'content-editable', label: 'Object schema' } };
+      const path = element.getItemPathArray('$root');
+
+      this.itemAction(element, config, path, itemId, 'import-JSON-to-element');
     },
 
     itemEditAction(element, itemId) {
@@ -224,26 +274,14 @@ export default Vue.extend({
       this.itemAction(element, config, path, itemId, 'item');
     },
 
-    createInspector(element, itemPath, config) {
-      const inspector = new ui.Inspector({
-        cell: element,
-        live: false,
-        inputs: util.setByPath({}, itemPath, config),
-        title: '(data, context) => { Your Code is here }'
-      });
-      inspector.render();
-      inspector.el.style.position = 'relative';
-      inspector.el.style.overflow = 'hidden';
-      return inspector
-    },
-
+    // type is reqarie
     itemAction(element, config, itemPath, itemId, type) {
 
       if (!config || !itemPath) return;
 
-      const inspector = this.createInspector(element, itemPath, config)
+      const inspector = createInspector(element, itemPath, config)
 
-      const dialog = this.createDialog({
+      const dialog = createDialog({
         width: 300,
         title: 'Edit Item',
         closeButton: false,
@@ -264,9 +302,12 @@ export default Vue.extend({
         'action:change': function () {
           const prevItem = element.getItemByPath(element.attributes.items, [...itemPath])
           inspector.updateCell()
-
+          //chose action target
           this.actionType(type, element, itemPath, itemId, prevItem, inspector)
-          this.liveUpdateSchema()
+
+          // save the item id in memory if error will appear
+          // (we listen to error prop in watch)
+          // and remove in function setPrevValidUserFunction
           this.tempData.itemId = itemId
           inspector.remove();
           dialog.close();
@@ -282,8 +323,10 @@ export default Vue.extend({
         selection.addRange(range);
       }
     },
+
     //save the valid prev _transformerCode in _prevValidTransformerCode in same cell
     savePrevValidUserFunction(itemId) {
+      if (itemId === '$root') return
       const item = this.ObjectMapperRecord.item(itemId)
       if (item && ![null, undefined, ''].includes(item._transformerCode)) {
         item._prevValidTransformerCode = item._transformerCode
@@ -308,7 +351,6 @@ export default Vue.extend({
 
     renderDecorators(element) {
       const decorators = element.get('decorators');
-      debugger
       if (!util.isPlainObject(decorators))
         return;
       const view = element.findView(this.paper);
@@ -342,23 +384,30 @@ export default Vue.extend({
 
       switch (type) {
         case 'user-function':
-          //
           const inputText = inspector.el.querySelector('[contenteditable]').innerText;
           if (['', undefined, null].includes(inputText)) {
             this.removeDecorator(element, itemId)
           } else
             this.addDecorator(element, itemId)
+          this.liveUpdateSchema()
           break
 
         case 'item':
           const item = element.getItemByPath(element.attributes.items, [...itemPath])
+          if (element.id === this.InputRecord.id) {
+            const result = {
+              label: item.key + ': ' + item.value
+            }
+            element.item(itemId, result)
+            break;
+          }
 
           if (prevItem._type !== item._type) {
             switch (item._type) {
               case 'Leaf':
                 if (['Array', 'Object'].includes(prevItem._type)) {
                   if (prevItem.items.length > 0) {
-                    let dialog = this.createDialog({
+                    let dialog = createDialog({
                       // title: i18n.methods.t('issue'),
                       title: 'Confirmation',
                       closeButton: true,
@@ -376,7 +425,7 @@ export default Vue.extend({
                         console.log(item)
                         element.item(itemId, {
                           ...item,
-                          items:[],
+                          items: [],
                           icon: 'mapper/document.svg',
                         })
 
@@ -397,7 +446,7 @@ export default Vue.extend({
               case 'Object':
                 if (prevItem._type !== 'Leaf') {
                   element.item(itemId, { ...prevItem })
-                  let dialog = this.createDialog({
+                  let dialog = createDialog({
                     // title: i18n.methods.t('issue'),
                     title: 'issue',
                     closeButton: true,
@@ -417,6 +466,7 @@ export default Vue.extend({
                 break;
             }
           }
+
           if (prevItem.label !== item.label) {
             item.id = element.getNewItemId(item.id, item.label)
             element.item(prevItem.id, item)
@@ -449,19 +499,26 @@ export default Vue.extend({
             targetLink.remove()
 
           }
+          this.liveUpdateSchema()
+          break
+
+        case 'import-JSON-to-element':
+          console.log('is in action :)')
+          const schema = JSON.parse(element.item('$root').schema)
+          console.log(schema, '  ===> schema')
+          this.liveUpdateSchema(schema)
           break
       }
-
     },
 
     // getItemByPath(items, path) {
-    //   const item = items
-    //   if (path.length <= 1) {
-    //     return item
-    //   }
-    //   path.shift()
-    //   return this.getItemByPath(items[path[0]], path)
-    // },
+//   const item = items
+//   if (path.length <= 1) {
+//     return item
+//   }
+//   path.shift()
+//   return this.getItemByPath(items[path[0]], path)
+// },
 
     editRecord(element, linkView, itemId, updateData, eventName) {
       if (!itemId) return;
@@ -469,15 +526,9 @@ export default Vue.extend({
 
       if (eventName === 'connect') {
         if (item._path) {
-          const inspector = new ui.Inspector({
-            cell: element,
-            live: false,
-          });
-          inspector.render();
-          inspector.el.style.position = 'relative';
-          inspector.el.style.overflow = 'hidden';
+          const inspector = createInspector(element)
 
-          const dialog = this.createDialog({
+          const dialog = createDialog({
             width: 300,
             title: 'Confirmation',
             closeButton: false,
@@ -548,14 +599,17 @@ export default Vue.extend({
       this.updateItem(ObjectMapperRecord, targetId, item)
     },
 
-    liveUpdateSchema() {
+    liveUpdateSchema(schema) {
       if (!this.isLiveUpdate) return
-      const schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
+      schema = schema ? schema : this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
+      // schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
+
       this.$emit('mapObject', {
         schema: schema.$root,
         input: this.inputJson,
       })
     },
+
     // LINKS RULES
     checkLinksRules(eventName, linkView, element, arrowhead) {
       const checkRecordLinkConnection = (linkView, element, logs = []) => {
@@ -630,61 +684,6 @@ export default Vue.extend({
           return true
       }
     },
-    // Create Dialog
-    createDialog(options) {
-      const _createButtons = (buttons) => {
-        const result = []
-        buttons.forEach(button => {
-          switch (button) {
-            case 'cancel':
-              result.push({
-                content: `${i18n.methods.t('cancel')}`,
-                action: 'cancel'
-              })
-              break
-            case 'change':
-              result.push({
-                content: `<span style="color:#fe854f">${i18n.methods.t('change')}</span>`,
-                action: 'change'
-              })
-              break
-            case 'toggle':
-              result.push({
-                content: `<span style="color:#fe854f">${i18n.methods.t('toggle')}</span>`,
-                action: 'toggle'
-              })
-              break
-            case 'remove' :
-              result.push({
-                action: 'remove',
-                content: `<span style="color:#fe854f">${i18n.methods.t('remove')}</span>`
-              })
-              break
-            case 'confirm':
-              result.push({
-                content: `<span style="color:#fe854f">${i18n.methods.t('confirm')}</span>`,
-                action: 'confirm'
-              })
-              break
-            case 'ok':
-              result.push({
-                content: `<span style="color:#fe854f">${i18n.methods.t('ok')}</span>`,
-                action: 'ok'
-              })
-              break
-          }
-        })
-        return result
-      }
-
-      return new ui.Dialog({
-        width: options.width || 300,
-        title: options.title || 'Edit Item',
-        closeButton: options.closeButton || false,
-        content: options.content || 'Try this Dialog Test',
-        buttons: _createButtons(options.buttons)
-      })
-    },
 
     showLinkTools(linkView) {
       let self = this
@@ -704,7 +703,7 @@ export default Vue.extend({
 
     linkAction(link, linkView) {
 
-      const dialog = this.createDialog({
+      const dialog = createDialog({
         title: 'Confirmation',
         content: `${i18n.methods.t('messages.deleteLink')}`,
         buttons: ['cancel', 'remove']
@@ -756,6 +755,7 @@ export default Vue.extend({
     removeLinks(id) {
       this.findLinksById(id).forEach(link => link.remove())
     },
+
     // create list of links
     createLinks(sourceShape, targetShape, source2TargetInstance, isAddToGraph = false, linksTarget = undefined) {
       let links = []
@@ -779,7 +779,7 @@ export default Vue.extend({
       newLink.addTo(graph)
     },
 
-    // create hash links /// by target && by source ///
+    // create hash links // ... // by target && by source ///
     createHashLinks(sourceShape, targetShape, source2TargetInstance) {
       const bySource = {}
       const byTarget = {}
@@ -816,6 +816,37 @@ export default Vue.extend({
 
         console.error('NOT valid Link || no link found')
       }
+    },
+
+    createRecords(graph, schema, actions) {
+      schema = schema ? schema : this.objectMapperSchema
+
+      this.InputRecord = new InputRecord([], this.inputJson)
+          .setName(i18n.methods.t('InputName'))
+          .position(100, 200)
+          .addTo(graph)
+
+      this.ObjectMapperRecord = new ObjectMapperRecord(
+          this.allowedOMTools,
+          schema)
+          .setName(i18n.methods.t('MappingSchema'))
+          .position(550, 100)
+          .addTo(graph)
+
+      this.OutputRecord = new OutputRecord([], this.outputJson)
+          .setName(i18n.methods.t('outputName'))
+          .position(900, 200)
+          .addTo(graph)
+    },
+
+    createLinksInstance() {
+      const input2ObjectMapper = this.ObjectMapperRecord.createInput2ObjectMapperInstance(this.ObjectMapperRecord.attributes.items[0], this.InputRecord.attributes.items[0])
+      const objectMapper2Output = this.ObjectMapperRecord.createObjectMapper2OutputInstance(this.ObjectMapperRecord.attributes.items[0], this.OutputRecord.attributes.items[0])
+
+      const objectMapper2OutputLinks = this.createLinks(this.ObjectMapperRecord, this.OutputRecord, objectMapper2Output, true)
+      const input2ObjectMapperLinks = this.createLinks(this.InputRecord, this.ObjectMapperRecord, input2ObjectMapper, true)
+
+      this.links = this.links.concat(objectMapper2OutputLinks, input2ObjectMapperLinks)
     },
 
     start() {
@@ -869,7 +900,7 @@ export default Vue.extend({
               padding: 8,
               attrs: {
                 'stroke': 'none',
-                'fill': '#7c68fc',
+                'fill': '#8cc23d',
                 'fill-opacity': 0.2
               }
             }
@@ -913,18 +944,56 @@ export default Vue.extend({
       });
 
       scroller.render()
+
       // Undo / Redo
       const commandManager = new dia.CommandManager({
         graph: graph,
-        cmdBeforeAdd: function (eventName) {
+        cmdBeforeAdd: function (eventName, cell, graph, options) {
           if (eventName === 'change:scrollTop')
             return false;
           return true;
         }
       });
-
+      //
       this.commandManager = commandManager
 
+      //todo: Suspended because logic complicated we will take care of this later
+      //
+      // const toolbar = new ui.Toolbar({
+      //   autoToggle: true,
+      //   tools: [
+      //     { type: 'undo' },
+      //     { type: 'redo' },
+      //   ],
+      //   references: {
+      //     commandManager: this.commandManager,
+      //   }
+      // })
+      //
+      // toolbar.render();
+      // toolbar.el.style.height = this.toolbarHeight + 'px';
+      //
+      // CommandManager
+      // commandManager.on('stack:push', function (commandPushedToUndoStack, opt) {
+      //   console.log(commandPushedToUndoStack, ' commandPushedToUndoStack')
+      //   // console.log(opt, ' options')
+      // })
+      //
+      // commandManager.on('stack:cancel', function (commandCanceled, opt) {
+      //   // console.log(commandCanceled, ' commandCanceled')
+      //   // console.log(opt, ' options')
+      // })
+      //
+      // commandManager.on('stack', function (opt) {
+      // if (this.hasUndo()) {
+      //   console.log(this.hasUndo(), ' hasUndo')
+      // }
+      //
+      // if (this.hasRedo()) {
+      //   console.log(this.hasRedo(), ' hasRedo')
+      // }
+      //
+      // }.bind(this));
 
       // Scrollbars
       graph.on('add', (cell) => {
@@ -934,6 +1003,7 @@ export default Vue.extend({
           }));
         }
       });
+
       // Decorators
       graph.on('add change:decorators', (cell) => {
         const decorators = cell.get('decorators');
@@ -951,29 +1021,9 @@ export default Vue.extend({
 
       commandManager.stopListening();
 
-      this.InputRecord = new InputRecord([], this.inputJson)
-          .setName(i18n.methods.t('InputName'))
-          .position(100, 200)
-          .addTo(graph)
-      this.ObjectMapperRecord = new ObjectMapperRecord(
-          ['export-to-json', 'edit', 'add-next-sibling', 'add-prev-sibling', 'remove', 'add-child-to-object', 'add-child-to-array', 'edit-function'],
-          this.objectMapperSchema)
-          .setName(i18n.methods.t('MappingSchema'))
-          .position(550, 100)
-          .addTo(graph)
-
-      this.OutputRecord = new OutputRecord([], this.outputJson)
-          .setName(i18n.methods.t('outputName'))
-          .position(900, 200)
-          .addTo(graph)
-
+      this.createRecords(graph)
       // Create the instance of links
-      const input2ObjectMapper = this.ObjectMapperRecord.createInput2ObjectMapperInstance(this.ObjectMapperRecord.attributes.items[0], this.InputRecord.attributes.items[0])
-      const objectMapper2Output = this.ObjectMapperRecord.createObjectMapper2OutputInstance(this.ObjectMapperRecord.attributes.items[0], this.OutputRecord.attributes.items[0])
-      const objectMapper2OutputLinks = this.createLinks(this.ObjectMapperRecord, this.OutputRecord, objectMapper2Output, true)
-      const input2ObjectMapperLinks = this.createLinks(this.InputRecord, this.ObjectMapperRecord, input2ObjectMapper, true)
-      this.links = this.links.concat(objectMapper2OutputLinks, input2ObjectMapperLinks)
-      //////////////////// // // // // // // //  // // // // //
+      this.createLinksInstance()
 
       commandManager.listen();
 
@@ -994,6 +1044,7 @@ export default Vue.extend({
       });
 
       paper.on('link:connect', (linkView, evt, elementViewConnected, magnet, arrowhead) => {
+
         const eventName = 'connect'
         const element = elementViewConnected.model;
         const link = linkView.model
@@ -1012,9 +1063,11 @@ export default Vue.extend({
         }
 
         this.editRecord(element, linkView, itemId, updateData, eventName);
+        commandManager.storeBatchCommand()
       });
 
       paper.on('link:disconnect', (linkView, evt, elementViewDisconnected, magnet, arrowhead) => {
+
         const element = elementViewDisconnected.model;
 
         const validation = this.checkLinksRules('link:disconnect', linkView, element, arrowhead)
@@ -1124,14 +1177,12 @@ export default Vue.extend({
         this.itemDecoratorEditAction(record, itemId);
       });
 
-      // const isFrozen = paper.isFrozen()
       paper.unfreeze();
 
       this.scroller = scroller
       this.paper = paper
-      // this.isValidLinks(inputToObjectMapper, objectMapperToOutput)
+      this.toolbar = toolbar
     },
-
   },
 
   created() {
@@ -1142,6 +1193,7 @@ export default Vue.extend({
   mounted() {
     const { scroller, paper, $refs: { canvas } } = this;
     canvas.appendChild(this.scroller.el);
+    // canvas.appendChild(this.toolbar.el);
 
     scroller.center();
     paper.unfreeze();
@@ -1149,9 +1201,7 @@ export default Vue.extend({
 
   watch: {
     inputJson(newData, oldData) {
-
       const newInputRecord = new InputRecord([], newData)
-
       const newInputRecordItems = newInputRecord.attributes.items[0]
       const oldInputRecordItems = this.InputRecord.attributes.items[0]
 
@@ -1163,14 +1213,18 @@ export default Vue.extend({
         schema: schema.$root,
         input: newData,
       })
+      this.setHistoryOfCommandManager()
     },
 
     objectMapperSchema(newData, oldData) {
-
+      if (!newData) return
       const newShape = new ObjectMapperRecord([], newData)
+
       this.ObjectMapperRecord.recordUpdate(this.ObjectMapperRecord.attributes.items[0], newShape.attributes.items[0])
 
-      this.savePrevValidUserFunction(this.tempData.itemId) //save the valid prev _transformerCode
+      //save the valid prev _transformerCode
+      this.savePrevValidUserFunction(this.tempData.itemId)
+
 
       // the new objectMapper record
       let newObjectMapperSchemaItems = this.ObjectMapperRecord.attributes.items[0]
@@ -1179,14 +1233,17 @@ export default Vue.extend({
       this.graph.removeLinks(this.InputRecord)
 
       this.createLinks(this.InputRecord, this.ObjectMapperRecord, Input2ObjectMapper, true)
+
+
     },
 
     outputJson(newData, oldData) {
 
       const newOutputRecord = new OutputRecord([], newData)
-
       const newOutputRecordItems = newOutputRecord.attributes.items[0]
       const oldOutputRecordItems = this.OutputRecord.attributes.items[0]
+
+      if (!newOutputRecordItems.length) return
 
       this.OutputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
       const objectMapper2Output = this.ObjectMapperRecord.createObjectMapper2OutputInstance(this.ObjectMapperRecord.attributes.items[0], newOutputRecordItems)
@@ -1194,6 +1251,7 @@ export default Vue.extend({
       this.graph.removeLinks(this.OutputRecord)
 
       this.createLinks(this.ObjectMapperRecord, this.OutputRecord, objectMapper2Output, true)
+
     },
 
     lang(newData, oldData) {
@@ -1201,7 +1259,7 @@ export default Vue.extend({
     },
 
     error(newData, oldData) {
-      const dialog = this.createDialog({
+      const dialog = createDialog({
         // width: options.width || 300,
         title: '<span style="color:#dc6a6a; font-weight: bold;">Error !</span>',
         closeButton: false,

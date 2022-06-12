@@ -87,8 +87,8 @@ export class Record extends shapes.standard.HeaderedRecord {
                     x: 0,
                     y: 0,
                     width: 'calc(w)',
-                    fill: '#4566E5',
-                    stroke: '#4566E5'
+                    fill: '#8cc23d',
+                    stroke: '#8cc23d'
                 },
                 headerLabel: {
                     y: 5,
@@ -124,7 +124,7 @@ export class Record extends shapes.standard.HeaderedRecord {
                     fontSize: 12,
                     fontFamily: 'Sans-serif',
                     itemHighlight: {
-                        fill: '#4566E5'
+                        fill: '#8cc23d'
                     }
                 },
                 itemLabels_disabled: {
@@ -203,6 +203,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         return [
             { action: 'edit', content: 'Edit Item' },
             { action: 'edit-function', content: 'Edit User Function' },
+            { action: 'add-child', content: 'Add child' },
             { action: 'add-child-to-array', content: 'Add child to Array' },
             { action: 'add-child-to-object', content: 'Add child to Object' },
             { action: 'add-next-sibling', content: 'Add next sibling' },
@@ -214,6 +215,7 @@ export class Record extends shapes.standard.HeaderedRecord {
     getTools() {
         return [
             { action: 'export-to-json', content: 'Export to JSON' },
+            { action: 'import-json', content: 'Import JSON' },
             // { action: 'add-item', content: 'Add Child' },
             // { action: 'remove', content: warning('Remove Record') }
         ];
@@ -223,11 +225,11 @@ export class Record extends shapes.standard.HeaderedRecord {
         let tempItem = this.getDefaultItem()
         this.addPrevSibling(itemsIds[0].id, tempItem)
 
-        itemsIds.forEach((item) => {
+        itemsIds.length && itemsIds.forEach((item) => {
             this.removeItem(item.id)
         })
 
-        newItems.forEach((newItem) => {
+        newItems.length && newItems.forEach((newItem) => {
             this.addPrevSibling(tempItem.id, newItem)
         })
         this.removeItem(tempItem.id)
@@ -339,13 +341,15 @@ export class ObjectMapperRecord extends Record {
             case 'Array':
                 const items = []
                 const elementAttributes = {}
-                Object.keys(schema._element).forEach(key => {
-                    if (key[0] !== '_') {
-                        items.push(this.objectMapperSchema2Shape(schema._element[key], key, path + label + '.[0].'))
-                    } else {
-                        elementAttributes[key] = schema._element[key]
-                    }
-                })
+                if (schema._element) {
+                    Object.keys(schema._element).forEach(key => {
+                        if (key[0] !== '_') {
+                            items.push(this.objectMapperSchema2Shape(schema._element[key], key, path + label + '.[0].'))
+                        } else {
+                            elementAttributes[key] = schema._element[key]
+                        }
+                    })
+                }
                 result = {
                     items,
                     elementAttributes,
@@ -430,7 +434,7 @@ export class ObjectMapperRecord extends Record {
             hasDefault: {
                 label: 'Has Default',
                 type: 'toggle',
-                defaultValue: true
+                defaultValue: false
             },
             _default: {
                 // when: { eq: { 'hasDefault': true } },
@@ -447,10 +451,10 @@ export class ObjectMapperRecord extends Record {
                     'Leaf'
                 ]
             },
-            _pathLevelUp: {
-                label: 'Path Level Up',
-                type: 'content-editable'
-            },
+            // _pathLevelUp: {
+            //     label: 'Path Level Up',
+            //     type: 'content-editable'
+            // },
             // icon: {
             //     label: 'Icon',
             //     type: 'select-button-group',
@@ -500,6 +504,7 @@ export class JsonRecord extends Record {
                         key,
                         isArray,
                         label,
+                        value: 'Object',
                         items,
                         id: path + _key,
                         icon: `mapper/${isArray ? 'array' : 'object'}.svg`
@@ -517,28 +522,15 @@ export class JsonRecord extends Record {
 
     getInspectorConfig() {
         return {
-            label: {
-                label: 'Label',
+            key: {
+                label: 'key',
+                type: 'content-editable',
+            },
+
+            value: {
+                label: 'value',
                 type: 'content-editable'
             },
-            icon: {
-                label: 'Icon',
-                type: 'select-button-group',
-                options: [{
-                    value: 'document',
-                    content: '<img height="42px" src="../assets/images/document.svg"/>'
-                }, {
-                    value: 'clipboard',
-                    content: '<img height="42px" src="../assets/images/clipboard.svg"/>'
-                }, {
-                    value: 'file',
-                    content: '<img height="42px" src="../assets/images/file.svg"/>'
-                }]
-            },
-            highlighted: {
-                label: 'Highlight',
-                type: 'toggle'
-            }
         };
     }
 

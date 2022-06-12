@@ -1,7 +1,7 @@
 <script>
 import Vue from 'vue';
 // Uncomment import and local "components" registration if library is not registered globally.
-// import { SharedComponentsVue2Sample } from '@/entry.esm';
+import { BaseUploadFile } from '@/entry.esm';
 
 export default Vue.extend({
   name: 'ServeDev',
@@ -47,125 +47,124 @@ export default Vue.extend({
     //   }
     // },
 
-
-    "schema": {
-      "coordinates": {
-        "lat": {
-          "_path": ".lat",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "lat",
-          "_absPath": "lat"
-        },
-        "long": {
-          "_path": ".long",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "long",
-          "_absPath": "long"
-        },
-        "_type": "Object"
-      },
-      "name": {
-        "_path": ".name",
-        "_type": "Leaf",
-        "_pathLevelUp": 1,
-        "_relPath": "name",
-        "_absPath": "name"
-      },
-      "address": {
-        "country": {
-          "_path": ".country",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "country",
-          "_absPath": "country"
-        },
-        "country_code": {
-          "_path": ".country_code",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "country_code",
-          "_absPath": "country_code"
-        },
-        "street": {
-          "_path": ".street",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "street",
-          "_absPath": "street"
-        },
-        "street2": {
-          "_path": ".street2",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "street2",
-          "_absPath": "street2"
-        },
-        "city": {
-          "_path": ".city",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "city",
-          "_absPath": "city"
-        },
-        "state": {
-          "_path": ".state",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "state",
-          "_absPath": "state"
-        },
-        "zip_code": {
-          "_path": ".zip_code",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "zip_code",
-          "_absPath": "zip_code"
-        },
-        "phone_number": {
-          "_path": ".phone_number",
-          "_type": "Leaf",
-          "_pathLevelUp": 1,
-          "_relPath": "phone_number",
-          "_absPath": "phone_number"
-        },
-        "_type": "Object"
-      },
-      "_type": "Object"
-    },
-    "outputJson": {
-      "coordinates": {
-        "lat": "52.65465",
-        "long": "51.54455"
-      },
-      "name": "test1",
-      "address": {
-        "country": "London",
-        "country_code": "GB",
-        "street": "107/109 High Street",
-        "street2": "",
-        "city": "london",
-        "state": "GB",
-        "zip_code": "AB43GI",
-        "phone_number": "566523584"
-      }
-    },
-    inputJson:
+    // "schema": {
+    //   "coordinates": {
+    //     "lat": {
+    //       "_path": ".lat",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "lat",
+    //       "_absPath": "lat"
+    //     },
+    //     "long": {
+    //       "_path": ".long",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "long",
+    //       "_absPath": "long"
+    //     },
+    //     "_type": "Object"
+    //   },
+    //   "name": {
+    //     "_path": ".name",
+    //     "_type": "Leaf",
+    //     "_pathLevelUp": 1,
+    //     "_relPath": "name",
+    //     "_absPath": "name"
+    //   },
+    //   "address": {
+    //     "country": {
+    //       "_path": ".country",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "country",
+    //       "_absPath": "country"
+    //     },
+    //     "country_code": {
+    //       "_path": ".country_code",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "country_code",
+    //       "_absPath": "country_code"
+    //     },
+    //     "street": {
+    //       "_path": ".street",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "street",
+    //       "_absPath": "street"
+    //     },
+    //     "street2": {
+    //       "_path": ".street2",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "street2",
+    //       "_absPath": "street2"
+    //     },
+    //     "city": {
+    //       "_path": ".city",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "city",
+    //       "_absPath": "city"
+    //     },
+    //     "state": {
+    //       "_path": ".state",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "state",
+    //       "_absPath": "state"
+    //     },
+    //     "zip_code": {
+    //       "_path": ".zip_code",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "zip_code",
+    //       "_absPath": "zip_code"
+    //     },
+    //     "phone_number": {
+    //       "_path": ".phone_number",
+    //       "_type": "Leaf",
+    //       "_pathLevelUp": 1,
+    //       "_relPath": "phone_number",
+    //       "_absPath": "phone_number"
+    //     },
+    //     "_type": "Object"
+    //   },
+    //   "_type": "Object"
+    // },
+    // "outputJson": {
+    //   "coordinates": {
+    //     "lat": "52.65465",
+    //     "long": "51.54455"
+    //   },
+    //   "name": "test1",
+    //   "address": {
+    //     "country": "London",
+    //     "country_code": "GB",
+    //     "street": "107/109 High Street",
+    //     "street2": "",
+    //     "city": "london",
+    //     "state": "GB",
+    //     "zip_code": "AB43GI",
+    //     "phone_number": "566523584"
+    //   }
+    // },
+    // inputJson:
         // [
-      {
-        "name": "test1",
-        "lat": "52.65465",
-        "long": "51.54455",
-        "country": "London",
-        "country_code": "GB",
-        "street": "107/109 High Street",
-        "street2": "",
-        "city": "london",
-        "state": "GB",
-        "zip_code": "AB43GI",
-        "phone_number": "566523584"
-      },
+      // {
+      //   "name": "test1",
+      //   "lat": "52.65465",
+      //   "long": "51.54455",
+      //   "country": "London",
+      //   "country_code": "GB",
+      //   "street": "107/109 High Street",
+      //   "street2": "",
+      //   "city": "london",
+      //   "state": "GB",
+      //   "zip_code": "AB43GI",
+      //   "phone_number": "566523584"
+      // },
       // {
       //   "name": "test2",
       //   "lat": "54.7656",
@@ -445,16 +444,17 @@ export default Vue.extend({
     //       },
     // }
 
-  })
-  // components: {
-  //  SharedComponentsVue2Sample,
-  // }
+  }),
+  components: {
+   // BaseUploadFile,
+  }
 });
 </script>
 
 <template>
   <div id="app">
-    <DataMapping :objectMapperSchema="schema" :inputJson="inputJson" :outputJson="outputJson"/>
+<!--    <BaseUploadFile/>-->
+<!--    <DataMapping :objectMapperSchema="schema" :inputJson="inputJson" :outputJson="outputJson"/>-->
 <!--        <shared-components-vue2-sample />-->
   </div>
 </template>
