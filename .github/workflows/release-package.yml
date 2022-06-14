@@ -15,8 +15,6 @@ jobs:
     permissions:
       packages: write
       contents: read
-    env:
-      GIT_NPM_TOKEN: ${{secrets.GIT_READ_TOKEN}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -26,8 +24,12 @@ jobs:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
       - name: Complete installation
+        env:
+          GIT_NPM_TOKEN: ${{secrets.GIT_READ_TOKEN}}
         run: npm install
       - name: Build
+        env:
+          GIT_NPM_TOKEN: ${{secrets.GIT_READ_TOKEN}}
         run: npm run build
       #- name: Test
       #  run: npm test:unit
