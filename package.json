@@ -26,8 +26,6 @@
   "dependencies": {
     "@OtailO-recommerce/rappid": "^1.5.1",
     "@vue/test-utils": "^2.0.0-rc.21",
-    "jquery": "^3.6.0",
-    "papaparse": "^5.3.2",
     "vue-i18n": "^8.11.2"
   },
   "devDependencies": {
