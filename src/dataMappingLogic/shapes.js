@@ -33,6 +33,7 @@ export class Record extends shapes.standard.HeaderedRecord {
     }
 
     getValuesFromShape(shape, keySearch = 'id', values = []) {
+        shape = shape ? shape : this.attributes.items[0]
         Object.keys(shape).map((key, index) => {
                 if (typeof keySearch === 'string' && key === keySearch) {
                     values.push(shape[key])
@@ -159,25 +160,18 @@ export class Record extends shapes.standard.HeaderedRecord {
         return this.attr(['headerLabel', 'textWrap', 'text'], name, opt);
     }
 
-    getNewChildId(id, element, counter = 0) {
-        return `${id}._new_item_${util.uuid()}`
-        // const newId = deleteStringFromSymbol(id, '_') || id
-        // let result = `${newId}._new_item_${util.uuid()}`
-        // const item = element.item(result)
-        // if (!item) {
-        //     return result
-        // } else {
-        //     return this.getNewChildId(result, element, ++counter)
-        // }
+    getItemId() {
+        return `new_item_${util.uuid().substring(0, 7)}`
+
     }
 
     getDefaultChild(itemId, element, icon) {
+
         icon = icon ? `mapper/${icon.toLowerCase()}.svg` : undefined
-        const id = this.getNewChildId(itemId, element)
-        const item = element.item(itemId)
+        const id = this.getItemId()
         return {
-            id,
-            label: `new_item_${item && item.items ? item.items.length : 0}`,
+            id: `${itemId}_${id}`,
+            label: `${id}`,
             icon: 'mapper/document.svg',
             _type: 'Leaf'
         }
@@ -185,9 +179,10 @@ export class Record extends shapes.standard.HeaderedRecord {
 
     getDefaultItem(itemId, element, icon) {
         const item = itemId && element ? element.item(itemId) : '';
+        const id = this.getItemId()
         return {
-            id: itemId ? this.getNewItemId(itemId) : util.uuid(),
-            label: 'new_item',
+            id,
+            label: id,
             icon: item.icon || "mapper/document.svg",
             _type: item._type || "Leaf"
         };
@@ -196,10 +191,14 @@ export class Record extends shapes.standard.HeaderedRecord {
     getNewItemId(id, newId = 'new_item') {
         id = id.split('.')
         id.pop()
-        return id.join('.') + '.' + newId;
+        return `${id.join('.')}.${newId}_${util.uuid()}`;
     }
 
     getItemTools(itemId) {
+        let tools = this.allowedTools
+        if (itemId === '$root') {
+            tools = ['edit', 'add-child', 'edit-function']
+        }
         return [
             { action: 'edit', content: 'Edit Item' },
             { action: 'edit-function', content: 'Edit User Function' },
@@ -209,7 +208,7 @@ export class Record extends shapes.standard.HeaderedRecord {
             { action: 'add-next-sibling', content: 'Add next sibling' },
             { action: 'add-prev-sibling', content: 'Add prev sibling' },
             { action: 'remove', content: warning('Remove Item') }
-        ].filter(tool => this.allowedTools.includes(tool.action));
+        ].filter(tool => tools.includes(tool.action));
     }
 
     getTools() {
@@ -223,18 +222,24 @@ export class Record extends shapes.standard.HeaderedRecord {
 
     recordUpdate(itemsIds, newItems) {
         let tempItem = this.getDefaultItem()
-        this.addPrevSibling(itemsIds[0].id, tempItem)
+        // check if is record is empty
+        if (itemsIds && !itemsIds.length && newItems.length === 1) {
+            this.set('items', [[newItems[0]]]);
+        }
 
-        itemsIds.length && itemsIds.forEach((item) => {
-            this.removeItem(item.id)
-        })
+        if (itemsIds && itemsIds.length) {
+            this.addPrevSibling(itemsIds[0].id, tempItem)
+            itemsIds.forEach((item) => {
+                this.removeItem(item.id)
+            })
+        }
 
         newItems.length && newItems.forEach((newItem) => {
             this.addPrevSibling(tempItem.id, newItem)
         })
         this.removeItem(tempItem.id)
 
-        const isItemVisible = this.isItemVisible(itemsIds[0].id)
+        const isItemVisible = itemsIds.length && this.isItemVisible(itemsIds[0].id)
     }
 
     getItemByPath(items, path) {
@@ -252,6 +257,14 @@ export class Record extends shapes.standard.HeaderedRecord {
         const item = this.getItemByPath(element.attributes.items, path)
         return item ? item : null
     }
+
+    removeItemAndInstances(itemId, targetElement) {
+        this.startBatch('item-remove');
+        this.removeItem(itemId);
+        this.removeInvalidLinks();
+        this.stopBatch('item-remove');
+    }
+
 }
 
 export class ObjectMapperRecord extends Record {
@@ -365,6 +378,7 @@ export class ObjectMapperRecord extends Record {
                 result = {
                     ...schema,
                     label,
+                    hasDefault: !!schema._default,
                     id: path + label,
                     icon: 'mapper/document.svg',
                     _transformerCode: schema._transformerCode ? schema._transformerCode : undefined,
@@ -451,43 +465,28 @@ export class ObjectMapperRecord extends Record {
                     'Leaf'
                 ]
             },
-            // _pathLevelUp: {
-            //     label: 'Path Level Up',
-            //     type: 'content-editable'
-            // },
-            // icon: {
-            //     label: 'Icon',
-            //     type: 'select-button-group',
-            //     options: [{
-            //         value: 'mapper/array.svg',
-            //         content: '<img height="42px" src="mapper/array.svg"/>'
-            //     }, {
-            //         value: 'mapper/document.svg',
-            //         content: '<img height="42px" src="mapper/document.svg"/>'
-            //     }, {
-            //         value: 'mapper/object.svg',
-            //         content: '<img height="42px" src="mapper/object.svg"/>'
-            //     }]
-            // }
-
         }
     }
 }
 
 export class JsonRecord extends Record {
-    // JSON = {}
 
     constructor(allowedTools, JSON) {
+        const items = JsonRecord.transformJSON2Shape(JSON)
         const attributes = {
-            items: [
-                JsonRecord.transformJSON2Shape(JSON)
-            ]
+            items: [items ? items : []]
         }
         super(allowedTools, attributes);
         // this.JSON = JSON
     }
 
     static transformJSON2Shape(obj, path = '') {
+        // if is object is observed and empty
+
+        if (this.attributes.items && this.attributes.items.length === 0) {
+            this.remove();
+            return
+        }
         if (obj && typeof obj === 'object') {
             const isArray = Array.isArray(obj)
 
@@ -519,6 +518,7 @@ export class JsonRecord extends Record {
             })
         }
     }
+
 
     getInspectorConfig() {
         return {
