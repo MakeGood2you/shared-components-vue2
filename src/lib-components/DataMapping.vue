@@ -1210,13 +1210,10 @@ export default Vue.extend({
     },
 
     outputJson(newData, oldData) {
-      // if (!Object.keys(newData).length) return
 
       const newOutputRecord = new OutputRecord([], newData)
       const newOutputRecordItems = newOutputRecord.attributes.items[0]
       const oldOutputRecordItems = this.OutputRecord.attributes.items[0]
-
-      // if (!newOutputRecordItems.length) return
 
       this.OutputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
       const objectMapper2Output = this.ObjectMapperRecord.createObjectMapper2OutputInstance(this.ObjectMapperRecord.attributes.items[0], newOutputRecordItems)
