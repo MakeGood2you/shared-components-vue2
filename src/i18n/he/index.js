@@ -1,7 +1,7 @@
 export default {
-    InputName: 'מסמך נכנס',
+    inputName: 'מסמך נכנס',
     outputName: 'מסמך יוצא',
-    MappingSchema: 'מיפוי המסמך',
+    mappingSchema: 'מיפוי המסמך',
     change: 'שנה',
     remove: 'מחק',
     confirm: 'מאשר',

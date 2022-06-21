@@ -1,7 +1,7 @@
 export default {
-  InputRecordName:'input JSON',
-  outputRecordName:'input JSON',
-  MappingSchema:'Mapping Schema',
+  inputName:'Input Record',
+  outputName:'Output Record',
+  mappingSchema:'Mapping Schema',
   change:'Change',
   remove:'Remove',
   confirm:'Confirm',
