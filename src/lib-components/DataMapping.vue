@@ -118,12 +118,8 @@ export default Vue.extend({
       toolbar.render();
       toolbar.on({
         'action:remove': function () {
-          element.startBatch('item-remove');
-
+          element.removeItemAndInstances(itemId, this.OutputRecord)
           this.removeDecorator(element, itemId)
-          element.removeItem(itemId);
-          element.removeInvalidLinks();
-          element.stopBatch('item-remove');
           toolbar.remove();
           this.liveUpdateSchema()
         }.bind(this),
@@ -158,38 +154,6 @@ export default Vue.extend({
             element.toggleItemCollapse(itemId);
           this.liveUpdateSchema()
         }.bind(this),
-        // 'action:add-child-to-object': function () {
-        //   toolbar.remove();
-        //
-        //   element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
-        //   if (element.isItemCollapsed(itemId))
-        //     element.toggleItemCollapse(itemId);
-        //
-        //   this.updateItem(element, itemId, {
-        //     icon: 'mapper/object.svg',
-        //     _type: 'Object',
-        //     _path: ''
-        //   })
-        //
-        //   const parent = element.item(itemId)
-        //   console.log(parent)
-        //
-        // }.bind(this),
-        // 'action:add-child-to-array': function () {
-        //   toolbar.remove();
-        //
-        //   element.addItemAtIndex(itemId, Infinity, element.getDefaultChild(itemId, element, 'document'));
-        //   if (element.isItemCollapsed(itemId))
-        //     element.toggleItemCollapse(itemId);
-        //
-        //   this.updateItem(element, itemId, {
-        //     icon: 'mapper/array.svg',
-        //     _type: 'Array',
-        //     _path: ''
-        //   })
-        //   const parent = element.item(itemId)
-        //   console.log(parent)
-        // }.bind(this),
 
         'action:add-next-sibling':
             function () {
@@ -279,7 +243,16 @@ export default Vue.extend({
 
       if (!config || !itemPath) return;
 
-      const inspector = createInspector(element, itemPath, config)
+      // const inspector = createInspector(element, itemPath, config)
+      const inspector = new ui.Inspector({
+        cell: element,
+        live: false,
+        inputs: config && itemPath ? util.setByPath({}, itemPath, config) : undefined,
+        // title: title ? title : '(data, context) => { Your Code is here }'
+      });
+      inspector.render();
+      inspector.el.style.position = 'relative';
+      inspector.el.style.overflow = 'hidden';
 
       const dialog = createDialog({
         width: 300,
@@ -308,7 +281,7 @@ export default Vue.extend({
           // save the item id in memory if error will appear
           // (we listen to error prop in watch)
           // and remove in function setPrevValidUserFunction
-          this.tempData.itemId = itemId
+          if (type === 'user-function') this.tempData.itemId = itemId
           inspector.remove();
           dialog.close();
         }.bind(this)
@@ -472,7 +445,10 @@ export default Vue.extend({
             element.item(prevItem.id, item)
           }
 
-          if (!item.hasDefault) {
+          if (item.hasDefault) {
+            item._default = item._default ? item._default : `""`
+            element.item(item.id, item)
+          } else {
             item._default = undefined
             element.item(item.id, item)
           }
@@ -503,9 +479,7 @@ export default Vue.extend({
           break
 
         case 'import-JSON-to-element':
-          console.log('is in action :)')
           const schema = JSON.parse(element.item('$root').schema)
-          console.log(schema, '  ===> schema')
           this.liveUpdateSchema(schema)
           break
       }
@@ -601,11 +575,11 @@ export default Vue.extend({
 
     liveUpdateSchema(schema) {
       if (!this.isLiveUpdate) return
-      schema = schema ? schema : this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
+      schema = schema ? schema : this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0]).$root
       // schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
-        schema: schema.$root,
+        schema: schema,
         input: this.inputJson,
       })
     },
@@ -1233,8 +1207,6 @@ export default Vue.extend({
       this.graph.removeLinks(this.InputRecord)
 
       this.createLinks(this.InputRecord, this.ObjectMapperRecord, Input2ObjectMapper, true)
-
-
     },
 
     outputJson(newData, oldData) {
@@ -1242,8 +1214,6 @@ export default Vue.extend({
       const newOutputRecord = new OutputRecord([], newData)
       const newOutputRecordItems = newOutputRecord.attributes.items[0]
       const oldOutputRecordItems = this.OutputRecord.attributes.items[0]
-
-      if (!newOutputRecordItems.length) return
 
       this.OutputRecord.recordUpdate(oldOutputRecordItems, newOutputRecordItems)
       const objectMapper2Output = this.ObjectMapperRecord.createObjectMapper2OutputInstance(this.ObjectMapperRecord.attributes.items[0], newOutputRecordItems)
