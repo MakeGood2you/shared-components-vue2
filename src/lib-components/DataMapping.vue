@@ -195,7 +195,7 @@ export default Vue.extend({
         }.bind(this),
         'action:import-json': function () {
           toolbar.remove();
-          this.importJSONToElementAction(element, '$root')
+          this.importJSONToElementAction(element, '__root')
         }.bind(this)
       });
     },
@@ -227,7 +227,7 @@ export default Vue.extend({
 
     importJSONToElementAction(element, itemId) {
       const config = { schema: { type: 'content-editable', label: 'Object schema' } };
-      const path = element.getItemPathArray('$root');
+      const path = element.getItemPathArray('__root');
 
       this.itemAction(element, config, path, itemId, 'import-JSON-to-element');
     },
@@ -243,13 +243,8 @@ export default Vue.extend({
 
       if (!config || !itemPath) return;
 
-      // const inspector = createInspector(element, itemPath, config)
-      const inspector = new ui.Inspector({
-        cell: element,
-        live: false,
-        inputs: config && itemPath ? util.setByPath({}, itemPath, config) : undefined,
-        // title: title ? title : '(data, context) => { Your Code is here }'
-      });
+      const inspector = createInspector(element, itemPath, config)
+
       inspector.render();
       inspector.el.style.position = 'relative';
       inspector.el.style.overflow = 'hidden';
@@ -299,7 +294,7 @@ export default Vue.extend({
 
     //save the valid prev _transformerCode in _prevValidTransformerCode in same cell
     savePrevValidUserFunction(itemId) {
-      if (itemId === '$root') return
+      if (itemId === '__root') return
       const item = this.ObjectMapperRecord.item(itemId)
       if (item && ![null, undefined, ''].includes(item._transformerCode)) {
         item._prevValidTransformerCode = item._transformerCode
@@ -339,10 +334,11 @@ export default Vue.extend({
     addDecorator(element, itemId) {
       const decorators = element.get('decorators');
       if (!decorators) {
-        element.attributes.decorators = { [itemId]: 'f()' }
+        element.set('decorators', { [itemId]: 'f()' });
       } else if (!decorators[itemId]) {
-        element.attributes.decorators[itemId] = 'f()'
-      } else return
+        decorators[itemId] = 'f()'
+        element.set('decorators', decorators);
+      } else return ''
       this.renderDecorators(element)
     },
 
@@ -479,7 +475,7 @@ export default Vue.extend({
           break
 
         case 'import-JSON-to-element':
-          const schema = JSON.parse(element.item('$root').schema)
+          const schema = JSON.parse(element.item('__root').schema)
           this.liveUpdateSchema(schema)
           break
       }
@@ -575,7 +571,7 @@ export default Vue.extend({
 
     liveUpdateSchema(schema) {
       if (!this.isLiveUpdate) return
-      schema = schema ? schema : this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0]).$root
+      schema = schema ? schema : this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0]).__root
       // schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
@@ -824,7 +820,7 @@ export default Vue.extend({
     },
 
     start() {
-      setTheme('material');
+      setTheme('modern');
 
       const graph = this.graph
 
@@ -932,44 +928,8 @@ export default Vue.extend({
       this.commandManager = commandManager
 
       //todo: Suspended because logic complicated we will take care of this later
-      //
-      // const toolbar = new ui.Toolbar({
-      //   autoToggle: true,
-      //   tools: [
-      //     { type: 'undo' },
-      //     { type: 'redo' },
-      //   ],
-      //   references: {
-      //     commandManager: this.commandManager,
-      //   }
-      // })
-      //
-      // toolbar.render();
-      // toolbar.el.style.height = this.toolbarHeight + 'px';
-      //
-      // CommandManager
-      // commandManager.on('stack:push', function (commandPushedToUndoStack, opt) {
-      //   console.log(commandPushedToUndoStack, ' commandPushedToUndoStack')
-      //   // console.log(opt, ' options')
-      // })
-      //
-      // commandManager.on('stack:cancel', function (commandCanceled, opt) {
-      //   // console.log(commandCanceled, ' commandCanceled')
-      //   // console.log(opt, ' options')
-      // })
-      //
-      // commandManager.on('stack', function (opt) {
-      // if (this.hasUndo()) {
-      //   console.log(this.hasUndo(), ' hasUndo')
-      // }
-      //
-      // if (this.hasRedo()) {
-      //   console.log(this.hasRedo(), ' hasRedo')
-      // }
-      //
-      // }.bind(this));
 
-      // Scrollbars
+          // Scrollbars
       graph.on('add', (cell) => {
         if (cell.get('type') === 'mapping.Record') {
           cell.findView(paper).addTools(new dia.ToolsView({
@@ -1033,7 +993,7 @@ export default Vue.extend({
         evt.stopPropagation();
 
         const updateData = {
-          _path: '.' + sourceId
+          _path: sourceId // absPath
         }
 
         this.editRecord(element, linkView, itemId, updateData, eventName);
@@ -1148,7 +1108,8 @@ export default Vue.extend({
 
       paper.on('element:decorator:pointerdown', (recordView, evt, itemId) => {
         const record = recordView.model;
-        this.itemDecoratorEditAction(record, itemId);
+        console.log('element:decorator:pointerdown')
+        // this.itemDecoratorEditAction(record, itemId);
       });
 
       paper.unfreeze();
@@ -1184,7 +1145,7 @@ export default Vue.extend({
       const schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
-        schema: schema.$root,
+        schema: schema.__root,
         input: newData,
       })
       this.setHistoryOfCommandManager()
