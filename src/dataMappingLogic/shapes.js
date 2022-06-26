@@ -285,10 +285,10 @@ export class ObjectMapperRecord extends Record {
     objectMapperSchemaShape2Schema(shape = this.attributes.items[0][0]) {
         switch (shape._type) {
             case 'Object':
-                const result = shape.items?.map((_item) => this.objectMapperSchemaShape2Schema(_item)).reduce(
+                const result = shape.items ? shape.items.map((_item) => this.objectMapperSchemaShape2Schema(_item)).reduce(
                     (previousValue, currentValue) => {
                         return Object.assign(previousValue, currentValue)
-                    }, {})
+                    }, {}) : undefined
 
                 return {
                     [shape.label]: {
@@ -302,10 +302,10 @@ export class ObjectMapperRecord extends Record {
             case'Array':
                 return {
                     [shape.label]: {
-                        _element: shape.items?.map((item) => this.objectMapperSchemaShape2Schema(item)).reduce(
+                        _element: shape.items ? shape.items.map((item) => this.objectMapperSchemaShape2Schema(item)).reduce(
                             (previousValue, currentValue) => {
                                 return Object.assign(previousValue, currentValue)
-                            }, { ...shape.elementAttributes }),
+                            }, { ...shape.elementAttributes }) : undefined,
 
                         _path: shape._path,
                         _default: shape._default ? shape._default : undefined,
@@ -326,8 +326,6 @@ export class ObjectMapperRecord extends Record {
             default:
                 throw 'Unknown schema type ==> objectMapperSchemaShape2JSON'
         }
-        //
-
     }
 
     static objectMapperSchema2Shape(schema, label = '__root', path = '') {

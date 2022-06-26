@@ -792,14 +792,14 @@ export default Vue.extend({
       schema = schema ? schema : this.objectMapperSchema
 
       this.InputRecord = new InputRecord([], this.inputJson)
-          .setName(i18n.methods.t('InputName'))
+          .setName(i18n.methods.t('inputName'))
           .position(100, 200)
           .addTo(graph)
 
       this.ObjectMapperRecord = new ObjectMapperRecord(
           this.allowedOMTools,
           schema)
-          .setName(i18n.methods.t('MappingSchema'))
+          .setName(i18n.methods.t('mappingSchema'))
           .position(550, 100)
           .addTo(graph)
 

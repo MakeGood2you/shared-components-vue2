@@ -1,6 +1,5 @@
 import { ui, util } from '@OtailO-recommerce/rappid';
 import i18n from '../services/i18n.vue.mixin';
-import Papa from 'papaparse';
 
 
 export function createInspector(element, itemPath, config, title) {
@@ -71,28 +70,3 @@ export function createDialog(options) {
         buttons: _createButtons(options.buttons)
     })
 }
-
-// uploadPoi(event) {
-//     const file = event.files[0]
-//     document.getElementsByClassName('file-select-name').innerText = 'Filename: ' + file.name
-//
-//     if (['text/csv', 'xlsx'].includes(file.type)) {
-//         return Papa.parse(file, {
-//             header: true,
-//             skipEmptyLines: true,
-//             complete: async function ({ data }) {
-//                 const result = data
-//             }
-//         })
-//
-//     } else if (['text/plain', 'application/json'].includes(file.type)) {
-//         const reader = new FileReader();
-//         reader.onload = (e) => {
-//             const schema = JSON.parse(e.target.result)
-//
-//             this.createRecords(this.graph, schema.$root, ['remove'])
-//             this.liveUpdateSchema()
-//         }
-//         reader.readAsBinaryString(file);
-//     }
-// },
