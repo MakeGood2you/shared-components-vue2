@@ -929,7 +929,7 @@ export default Vue.extend({
 
       //todo: Suspended because logic complicated we will take care of this later
 
-          // Scrollbars
+      // Scrollbars
       graph.on('add', (cell) => {
         if (cell.get('type') === 'mapping.Record') {
           cell.findView(paper).addTools(new dia.ToolsView({
@@ -1224,6 +1224,19 @@ export default Vue.extend({
   .joint-paper {
     border: 1px solid #A0A0A0;
   }
+}
+
+.joint-inspector.joint-theme-modern {
+  background: #f6f6f6 !important;
+  color: #000000 !important;
+}
+
+.joint-inspector.joint-theme-modern .toggle input:checked + span {
+  background: #3eac49
+}
+
+.content-editable {
+  color: #262c29 !important;
 }
 
 </style>
