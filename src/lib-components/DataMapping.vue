@@ -195,7 +195,7 @@ export default Vue.extend({
         }.bind(this),
         'action:import-json': function () {
           toolbar.remove();
-          this.importJSONToElementAction(element, '__root')
+          this.importJSONToElementAction(element, '$_root')
         }.bind(this)
       });
     },
@@ -227,7 +227,7 @@ export default Vue.extend({
 
     importJSONToElementAction(element, itemId) {
       const config = { schema: { type: 'content-editable', label: 'Object schema' } };
-      const path = element.getItemPathArray('__root');
+      const path = element.getItemPathArray('$_root');
 
       this.itemAction(element, config, path, itemId, 'import-JSON-to-element');
     },
@@ -294,7 +294,7 @@ export default Vue.extend({
 
     //save the valid prev _transformerCode in _prevValidTransformerCode in same cell
     savePrevValidUserFunction(itemId) {
-      if (itemId === '__root') return
+      if (itemId === '$_root') return
       const item = this.ObjectMapperRecord.item(itemId)
       if (item && ![null, undefined, ''].includes(item._transformerCode)) {
         item._prevValidTransformerCode = item._transformerCode
@@ -475,7 +475,7 @@ export default Vue.extend({
           break
 
         case 'import-JSON-to-element':
-          const schema = JSON.parse(element.item('__root').schema)
+          const schema = JSON.parse(element.item('$_root').schema)
           this.liveUpdateSchema(schema)
           break
       }
@@ -571,7 +571,7 @@ export default Vue.extend({
 
     liveUpdateSchema(schema) {
       if (!this.isLiveUpdate) return
-      schema = schema ? schema : this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0]).__root
+      schema = schema ? schema : this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0]).$_root
       // schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
@@ -1145,7 +1145,7 @@ export default Vue.extend({
       const schema = this.ObjectMapperRecord.objectMapperSchemaShape2Schema(this.ObjectMapperRecord.attributes.items[0][0])
 
       this.$emit('mapObject', {
-        schema: schema.__root,
+        schema: schema.$_root,
         input: newData,
       })
       this.setHistoryOfCommandManager()

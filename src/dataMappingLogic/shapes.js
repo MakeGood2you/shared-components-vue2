@@ -37,9 +37,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         Object.keys(shape).map((key, index) => {
                 if (typeof keySearch === 'string' && key === keySearch) {
                     values.push(shape[key])
-                }
-
-                else if (Array.isArray(keySearch)) {
+                } else if (Array.isArray(keySearch)) {
 
                     const _keySearch = keySearch[0]
                     const _keySearch2 = keySearch[1]
@@ -197,7 +195,7 @@ export class Record extends shapes.standard.HeaderedRecord {
 
     getItemTools(itemId) {
         let tools = this.allowedTools
-        if (itemId === '__root') {
+        if (itemId === '$_root') {
             tools = ['edit', 'add-child', 'edit-function']
         }
         return [
@@ -328,9 +326,9 @@ export class ObjectMapperRecord extends Record {
         }
     }
 
-    static objectMapperSchema2Shape(schema, label = '__root', path = '') {
+    static objectMapperSchema2Shape(schema, label = '$_root', path = '') {
         let result = null
-
+        schema = schema && schema.$_root ? schema.$_root : schema
         switch (schema._type) {
             case 'Object': {
                 const items = []
