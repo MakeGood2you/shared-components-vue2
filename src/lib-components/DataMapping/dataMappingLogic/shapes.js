@@ -1,5 +1,5 @@
 import { shapes, util } from '@OtailO-recommerce/rappid';
-import { _replaceAll, cutStringFromSymbol, createKeyValueString, deleteStringFromSymbol } from '../utils/strings';
+import { _replaceAll, cutStringFromSymbol, createKeyValueString, deleteStringFromSymbol } from '../../../utils/strings';
 
 export class Link extends shapes.standard.Link {
     defaults() {

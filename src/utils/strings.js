@@ -1,3 +1,7 @@
+export function setLabel(item) {
+    return item.key + (!['Array', 'Object'].includes(item.value) ? ': ' + item.value || 'Empty' : '')
+}
+
 export function _replaceAll(string, target, replaceTo) {
     if (string.indexOf(target) !== -1) {
         string = string.replaceAll(target, replaceTo)
@@ -25,15 +29,15 @@ export function deleteStringFromSymbol(string = '', symbol, start) {
 }
 
 export function createKeyValueString(key, value) {
+    const validation = ['Array', 'Object']
+    const isValidateByType = validation.includes(value.constructor.name)
+    const isValidateByValue = validation.includes(value)
+
     if (!key) key = 'none'
     if (!value) value = ''
-    if (!['Array', 'Object'].includes(value.constructor.name))
-        return `${key}: ${value.toString()}`
-    else if (value.constructor.name === 'Object')
-        return `${key}`
-    else if (value.constructor.name === 'Array')
-        return `${key}`
-    else {
+    if (!isValidateByType && !isValidateByValue) return `${key}: ${value.toString()}`
 
-    }
+    else if (isValidateByValue) return `${key}`
+    else if (value.constructor.name === 'Object') return `${key}`
+    else if (value.constructor.name === 'Array') return `${key}`
 }

@@ -8,16 +8,16 @@
 
 import { dia, elementTools, setTheme, shapes, ui, util } from '@OtailO-recommerce/rappid';
 
-import { InputRecord, Link, ObjectMapperRecord, OutputRecord } from '../dataMappingLogic/shapes';
-import { Decorator } from '../dataMappingLogic/highlighters';
-import { Button, TargetArrowhead } from '../dataMappingLogic/link-tools';
-import { routerNamespace } from '../dataMappingLogic/routers';
-import { anchorNamespace } from '../dataMappingLogic/anchors';
+import { InputRecord, Link, ObjectMapperRecord, OutputRecord } from './dataMappingLogic/shapes';
+import { Decorator } from './dataMappingLogic/highlighters';
+import { Button, TargetArrowhead } from './dataMappingLogic/link-tools';
+import { routerNamespace } from './dataMappingLogic/routers';
+import { anchorNamespace } from './dataMappingLogic/anchors';
 
-import { createInspector, createDialog, } from '../dataMappingLogic/UI-utils';
-import { cutStringFromSymbol } from '../utils/strings';
+import { createInspector, createDialog, } from '../../utils/jointJS-UI-utils';
+import { cutStringFromSymbol } from '../../utils/strings';
 
-import i18n, { getLanguage } from '../services/i18n.vue.mixin';
+import i18n, { getLanguage } from '../../services/i18n.vue.mixin';
 import Vue from 'vue';
 
 export default Vue.extend({
@@ -435,8 +435,8 @@ export default Vue.extend({
                 break;
             }
           }
-
           if (prevItem.label !== item.label) {
+            //TODO: Check if the id generate is working
             item.id = element.getNewItemId(item.id, item.label)
             element.item(prevItem.id, item)
           }
@@ -981,7 +981,7 @@ export default Vue.extend({
 
         const eventName = 'connect'
         const element = elementViewConnected.model;
-        const link = linkView.model
+        const link = linkView.modelx
         const validation = this.checkLinksRules('link:connect', linkView, element, arrowhead)
         if (!validation.isValid) {
           return
@@ -1148,7 +1148,6 @@ export default Vue.extend({
         schema: schema.$_root,
         input: newData,
       })
-      this.setHistoryOfCommandManager()
     },
 
     objectMapperSchema(newData, oldData) {
@@ -1214,8 +1213,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import "~@OtailO-recommerce/rappid/rappid.css";
-@import '../dataMappingLogic/styles.scss';
+@import "../../../node_modules/@OtailO-recommerce/rappid/rappid.css";
+@import 'src/css/jointJS-style';
 
 .canvas {
   width: 95vw;

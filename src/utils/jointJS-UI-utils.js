@@ -3,6 +3,7 @@ import i18n from '../services/i18n.vue.mixin';
 
 
 export function createInspector(element, itemPath, config, title) {
+
     const inspector = new ui.Inspector({
         cell: element,
         live: false,

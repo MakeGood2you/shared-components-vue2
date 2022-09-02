@@ -1,4 +1,8 @@
 /* eslint-disable import/prefer-default-export */
-export { default as SharedComponentsVue2Sample } from './shared-components-vue2-sample.vue';
-export { default as DataMapping } from './DataMapping';
+export { default as DataMapping } from './DataMapping/DataMapping';
+export { default as JsonEditor } from './JsonEditor/JsonEditor';
+
+// Tests
+export { default as JsonEditorTest } from '../../dev/tests/JsonEditor.test';
+
 
