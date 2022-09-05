@@ -21,145 +21,158 @@ export default {
   components: { JsonEditor },
 
   data: () => ({
+    inputJson2:[ {
+      order_no: "ORD487",
+      // creation_date: "2022-02-27",
+      // currency: '$',
+      product_items: [{
+        // "product_id": 123123,
+        // "item_id": 231231,
+        "quantity": 25,
+        "c_otailoAttribtues": {
+          a: 'sasasas',
+        }
+      }],
+    }],
     inputJson: {
 
-        order_no: "ORD487",
-        creation_date: "2022-02-27",
-        currency: { },
-        product_items: [{
-            "product_id": 123123,
-            "item_id": 231231,
-            "quantity": 25,
-            "c_otailoAttribtues": {
-              "price": {
-                "sales": {
-                  "value": 49.9
-                },
-                "list": {
-                  "value": 99.9
-                }
-              },
-              "variationAttributes": [
+      order_no: "ORD487",
+      creation_date: "2022-02-27",
+      currency: '$',
+      product_items: [{
+        "product_id": 123123,
+        "item_id": 231231,
+        "quantity": 25,
+        "c_otailoAttribtues": {
+          "price": {
+            "sales": {
+              "value": 49.9
+            },
+            "list": {
+              "value": 99.9
+            }
+          },
+          "variationAttributes": [
+            {
+              "id": "size",
+              "values": [
                 {
-                  "id": "size",
-                  "values": [
-                    {
-                      "selected": true,
-                      "displayValue": "small"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "medium"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "large"
-                    }
-                  ]
+                  "selected": true,
+                  "displayValue": "small"
                 },
                 {
-                  "id": "color",
-                  "values": [
-                    {
-                      "selected": true,
-                      "displayValue": "red"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "blue"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "yellow"
-                    }
-                  ]
-                }
-              ],
-              "images": {
-                "small": [
-                  {
-                    "url": "https://imageUrlSmall.png"
-                  }
-                ]
-              }
-            },
-            "product_name": "Air max",
-            "c_otailoTrackingID": "KLHKJ213L1JJ2K",
-            "c_otailoTrackingURL": "https://www.makegood.co.il",
-            "c_otailoReturnReason": "do now match to my legs",
-            "c_otailoReturnType": "Object",
-            "c_otailoStatus": "pending"
-          }],
-        testObject:{
-          "product_id": 123123,
-          "item_id": 231231,
-          "quantity": 25,
-          "c_otailoAttribtues": {
-            "price": {
-              "sales": {
-                "value": 49.9
-              },
-              "list": {
-                "value": 99.9
-              }
-            },
-            "variationAttributes": [
-              {
-                "id": "size",
-                "values": [
-                  {
-                    "selected": true,
-                    "displayValue": "small"
-                  },
-                  {
-                    "selected": false,
-                    "displayValue": "medium"
-                  },
-                  {
-                    "selected": false,
-                    "displayValue": "large"
-                  }
-                ]
-              },
-              {
-                "id": "color",
-                "values": [
-                  {
-                    "selected": true,
-                    "displayValue": "red"
-                  },
-                  {
-                    "selected": false,
-                    "displayValue": "blue"
-                  },
-                  {
-                    "selected": false,
-                    "displayValue": "yellow"
-                  }
-                ]
-              }
-            ],
-            "images": {
-              "small": [
+                  "selected": false,
+                  "displayValue": "medium"
+                },
                 {
-                  "url": "https://imageUrlSmall.png"
+                  "selected": false,
+                  "displayValue": "large"
+                }
+              ]
+            },
+            {
+              "id": "color",
+              "values": [
+                {
+                  "selected": true,
+                  "displayValue": "red"
+                },
+                {
+                  "selected": false,
+                  "displayValue": "blue"
+                },
+                {
+                  "selected": false,
+                  "displayValue": "yellow"
                 }
               ]
             }
-          },
-          "product_name": "Air max",
-          "c_otailoTrackingID": "KLHKJ213L1JJ2K",
-          "c_otailoTrackingURL": "https://www.makegood.co.il",
-          "c_otailoReturnReason": "do now match to my legs",
-          "c_otailoReturnType": "Object",
-          "c_otailoStatus": "pending"
+          ],
+          "images": {
+            "small": [
+              {
+                "url": "https://imageUrlSmall.png"
+              }
+            ]
+          }
         },
+        "product_name": "Air max",
+        "c_otailoTrackingID": "KLHKJ213L1JJ2K",
+        "c_otailoTrackingURL": "https://www.makegood.co.il",
+        "c_otailoReturnReason": "do now match to my legs",
+        "c_otailoReturnType": "Object",
+        "c_otailoStatus": "pending"
+      }],
+      testObject: {
+        "product_id": 123123,
+        "item_id": 231231,
+        "quantity": 25,
+        "c_otailoAttribtues": {
+          "price": {
+            "sales": {
+              "value": 49.9
+            },
+            "list": {
+              "value": 99.9
+            }
+          },
+          "variationAttributes": [
+            {
+              "id": "size",
+              "values": [
+                {
+                  "selected": true,
+                  "displayValue": "small"
+                },
+                {
+                  "selected": false,
+                  "displayValue": "medium"
+                },
+                {
+                  "selected": false,
+                  "displayValue": "large"
+                }
+              ]
+            },
+            {
+              "id": "color",
+              "values": [
+                {
+                  "selected": true,
+                  "displayValue": "red"
+                },
+                {
+                  "selected": false,
+                  "displayValue": "blue"
+                },
+                {
+                  "selected": false,
+                  "displayValue": "yellow"
+                }
+              ]
+            }
+          ],
+          "images": {
+            "small": [
+              {
+                "url": "https://imageUrlSmall.png"
+              }
+            ]
+          }
+        },
+        "product_name": "Air max",
+        "c_otailoTrackingID": "KLHKJ213L1JJ2K",
+        "c_otailoTrackingURL": "https://www.makegood.co.il",
+        "c_otailoReturnReason": "do now match to my legs",
+        "c_otailoReturnType": "Object",
+        "c_otailoStatus": "pending"
       },
+    },
 
     copy_input_json: null,
   }),
   methods: {
-    isLoaded:() => true,
+    isLoaded: () => true,
 
     setJsonData(data) {
       if (data && data.input) {
@@ -168,7 +181,7 @@ export default {
     },
   },
   created() {
-    this.setJsonData({input : this.inputJson})
+    this.setJsonData({ input: this.inputJson })
   }
 }
 

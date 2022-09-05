@@ -9,150 +9,150 @@ import { dia, elementTools, setTheme, shapes, ui, util } from '@OtailO-recommerc
 import { InputRecord } from './jsonEditorLogic/shapes';
 import i18n, { getLanguage } from '../../services/i18n.vue.mixin';
 import { createDialog, createInspector } from '../../utils/jointJS-UI-utils';
-import { createKeyValueString, cutStringFromSymbol, setLabel } from '../../utils/strings';
 import { textArea } from '../../utils/html-tamples';
+// import { createKeyValueString, cutStringFromSymbol, setLabel } from '../../utils/strings';
 
 export default {
   name: "JsonEditor",
   props: {
     inputJson: {
-      type: Object,
+      type: [Object, Array],
       required: true,
       default: () => {
         return {
           "order_no": "ORD487",
           "creation_date": "2022-02-27",
-          "currency": "$",
-          "product_items": [
-            {
-              "product_id": 123123,
-              "item_id": 231231,
-              "quantity": 25,
-              "c_otailoAttribtues": {
-                "price": {
-                  "sales": {
-                    "value": 49.9
-                  },
-                  "list": {
-                    "value": 99.9
-                  }
-                },
-                "variationAttributes": [
-                  {
-                    "id": "size",
-                    "values": [
-                      {
-                        "selected": true,
-                        "displayValue": "small"
-                      },
-                      {
-                        "selected": false,
-                        "displayValue": "medium"
-                      },
-                      {
-                        "selected": false,
-                        "displayValue": "large"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "color",
-                    "values": [
-                      {
-                        "selected": true,
-                        "displayValue": "red"
-                      },
-                      {
-                        "selected": false,
-                        "displayValue": "blue"
-                      },
-                      {
-                        "selected": false,
-                        "displayValue": "yellow"
-                      }
-                    ]
-                  }
-                ],
-                "images": {
-                  "small": [
-                    {
-                      "url": "https://imageUrlSmall.png"
-                    }
-                  ]
-                }
-              },
-              "product_name": "Air max",
-              "c_otailoTrackingID": "KLHKJ213L1JJ2K",
-              "c_otailoTrackingURL": "https://www.makegood.co.il",
-              "c_otailoReturnReason": "do now match to my legs",
-              "c_otailoReturnType": "Object",
-              "c_otailoStatus": "pending"
-            },
-          ],
-          testObject: {
-            "product_id": 123123,
-            "item_id": 231231,
-            "quantity": 25,
-            "c_otailoAttribtues": {
-              "price": {
-                "sales": {
-                  "value": 49.9
-                },
-                "list": {
-                  "value": 99.9
-                }
-              },
-              "variationAttributes": [
-                {
-                  "id": "size",
-                  "values": [
-                    {
-                      "selected": true,
-                      "displayValue": "small"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "medium"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "large"
-                    }
-                  ]
-                },
-                {
-                  "id": "color",
-                  "values": [
-                    {
-                      "selected": true,
-                      "displayValue": "red"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "blue"
-                    },
-                    {
-                      "selected": false,
-                      "displayValue": "yellow"
-                    }
-                  ]
-                }
-              ],
-              "images": {
-                "small": [
-                  {
-                    "url": "https://imageUrlSmall.png"
-                  }
-                ]
-              }
-            },
-            "product_name": "Air max",
-            "c_otailoTrackingID": "KLHKJ213L1JJ2K",
-            "c_otailoTrackingURL": "https://www.makegood.co.il",
-            "c_otailoReturnReason": "do now match to my legs",
-            "c_otailoReturnType": "Object",
-            "c_otailoStatus": "pending"
-          },
+          // "currency": "$",
+          // "product_items": [
+          //   {
+          //     "product_id": 123123,
+          //     "item_id": 231231,
+          //     "quantity": 25,
+          //     "c_otailoAttribtues": {
+          //       "price": {
+          //         "sales": {
+          //           "value": 49.9
+          //         },
+          //         "list": {
+          //           "value": 99.9
+          //         }
+          //       },
+          //       "variationAttributes": [
+          //         {
+          //           "id": "size",
+          //           "values": [
+          //             {
+          //               "selected": true,
+          //               "displayValue": "small"
+          //             },
+          //             {
+          //               "selected": false,
+          //               "displayValue": "medium"
+          //             },
+          //             {
+          //               "selected": false,
+          //               "displayValue": "large"
+          //             }
+          //           ]
+          //         },
+          //         {
+          //           "id": "color",
+          //           "values": [
+          //             {
+          //               "selected": true,
+          //               "displayValue": "red"
+          //             },
+          //             {
+          //               "selected": false,
+          //               "displayValue": "blue"
+          //             },
+          //             {
+          //               "selected": false,
+          //               "displayValue": "yellow"
+          //             }
+          //           ]
+          //         }
+          //       ],
+          //       "images": {
+          //         "small": [
+          //           {
+          //             "url": "https://imageUrlSmall.png"
+          //           }
+          //         ]
+          //       }
+          //     },
+          //     "product_name": "Air max",
+          //     "c_otailoTrackingID": "KLHKJ213L1JJ2K",
+          //     "c_otailoTrackingURL": "https://www.makegood.co.il",
+          //     "c_otailoReturnReason": "do now match to my legs",
+          //     "c_otailoReturnType": "Object",
+          //     "c_otailoStatus": "pending"
+          //   },
+          // ],
+          // testObject: {
+          //   "product_id": 123123,
+          //   "item_id": 231231,
+          //   "quantity": 25,
+          //   "c_otailoAttribtues": {
+          //     "price": {
+          //       "sales": {
+          //         "value": 49.9
+          //       },
+          //       "list": {
+          //         "value": 99.9
+          //       }
+          //     },
+          //     "variationAttributes": [
+          //       {
+          //         "id": "size",
+          //         "values": [
+          //           {
+          //             "selected": true,
+          //             "displayValue": "small"
+          //           },
+          //           {
+          //             "selected": false,
+          //             "displayValue": "medium"
+          //           },
+          //           {
+          //             "selected": false,
+          //             "displayValue": "large"
+          //           }
+          //         ]
+          //       },
+          //       {
+          //         "id": "color",
+          //         "values": [
+          //           {
+          //             "selected": true,
+          //             "displayValue": "red"
+          //           },
+          //           {
+          //             "selected": false,
+          //             "displayValue": "blue"
+          //           },
+          //           {
+          //             "selected": false,
+          //             "displayValue": "yellow"
+          //           }
+          //         ]
+          //       }
+          //     ],
+          //     "images": {
+          //       "small": [
+          //         {
+          //           "url": "https://imageUrlSmall.png"
+          //         }
+          //       ]
+          //     }
+          //   },
+          //   "product_name": "Air max",
+          //   "c_otailoTrackingID": "KLHKJ213L1JJ2K",
+          //   "c_otailoTrackingURL": "https://www.makegood.co.il",
+          //   "c_otailoReturnReason": "do now match to my legs",
+          //   "c_otailoReturnType": "Object",
+          //   "c_otailoStatus": "pending"
+          // },
         }
       },
     },
@@ -196,6 +196,7 @@ export default {
   }),
 
   methods: {
+
     showElementTools(elementView) {
       const element = elementView.model;
       const padding = util.normalizeSides(element.get('padding'));
@@ -216,6 +217,16 @@ export default {
       transform.render();
     },
 
+    refreshRecord(element, newData) {
+      newData = !newData ? element.transformShape2JSON(element.attributes.items[0]) : newData
+
+      const oldInputRecordItems = element.attributes.items[0]
+      const newInputRecord = new InputRecord([], newData)
+      const newInputRecordItems = newInputRecord.attributes.items[0]
+
+      element.recordUpdate(oldInputRecordItems, newInputRecordItems)
+    },
+
     itemActionPicker(target, elementView, itemId, tools) {
 
       const element = elementView.model;
@@ -229,8 +240,17 @@ export default {
       toolbar.render();
       toolbar.on({
         'action:remove': function () {
-          element.removeItemAndInstances(itemId, this.InputRecord)
-          // this.onUpdateInput()
+
+          const item = element.item(itemId)
+          const parentId = element.getParentId(item.id)
+          let parent = element.item(parentId)
+          if (parent && parent._type === 'Array') {
+            element.removeItem(item.id)
+            element.refreshRecord()
+          } else {
+            element.removeItemAndInstances(itemId, element)
+          }
+
           toolbar.remove();
         }.bind(this),
 
@@ -243,7 +263,7 @@ export default {
           toolbar.remove();
           const parent = element.item(itemId)
           let newChild = {}
-          if (!['Array', 'Object'].includes(parent._type)) {
+          if (parent && !['Array', 'Object'].includes(parent._type)) {
             const dialog = createDialog({
               title: 'Error',
               closeButton: true,
@@ -261,32 +281,36 @@ export default {
 
           newChild = element.getDefaultChild(parent.id)
 
-          if (parent._type === 'Array') {
-            debugger
-            newChild = element.setItemInArray(parent, newChild)
+          if (parent && parent._type === 'Array') {
+            newChild = element.addItemInArray(parent, newChild)
+            element.refreshRecord()
           }
 
           element.addItemAtIndex(itemId, Infinity, newChild);
-          // element.item(itemId, { items: parentItems })
+
           this.itemEditAction(element, newChild)
 
           if (element.isItemCollapsed(itemId))
             element.toggleItemCollapse(itemId);
-          // this.onUpdateInput()
+
         }.bind(this),
 
         'action:add-next-sibling':
             function () {
+              const newItem = element.createSibling(itemId)
+              element.addNextSibling(itemId, newItem);
+              this.refreshRecord(element)
               toolbar.remove();
-              const item = element.item(itemId)
-              element.addNextSibling(itemId, element.itemTemplate(item, item._type));
+
             }.bind(this),
 
         'action:add-prev-sibling':
             function () {
+              const newItem = element.createSibling(itemId)
+              element.addPrevSibling(itemId, newItem);
+              this.refreshRecord(element)
+
               toolbar.remove();
-              const item = element.item(itemId)
-              element.addPrevSibling(itemId, element.itemTemplate(item, item._type));
             }.bind(this)
       });
     },
@@ -373,7 +397,6 @@ export default {
           inspector.updateCell()
 
           const currItem = element.item(itemId)
-          debugger
           let newItem = null
           const _currItem_type = currItem._type
 
@@ -422,8 +445,8 @@ export default {
 
       const paper = new dia.Paper({
         model: graph,
-        width: 1200,
-        height: 800,
+        width: window.screen.width,
+        height: window.screen.height,
         gridSize: 10,
         multiLinks: false,
         async: true,
@@ -517,16 +540,12 @@ export default {
 
       commandManager.listen();
 
-      function zoom(x, y, delta) {
-        scroller.zoom(delta * 0.2, { min: 0.4, max: 3, grid: 0.2, ox: x, oy: y });
-      }
-
       paper.on('blank:pointerdown', (evt) => scroller.startPanning(evt));
 
-      paper.on('blank:mousewheel', (evt, ox, oy, delta) => {
-        evt.preventDefault();
-        zoom(ox, oy, delta);
-      });
+      // paper.on('blank:mousewheel', (evt, ox, oy, delta) => {
+      //   evt.preventDefault();
+      //   zoom(ox, oy, delta);
+      // });
 
       paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
         evt.stopPropagation();
@@ -559,20 +578,20 @@ export default {
         this.showElementTools(elementView);
       });
 
-      paper.on('element:pointermove', function (view, evt, x, y) {
-        const data = evt.data;
-        let ghost = data.ghost;
-        if (!ghost) {
-          const position = view.model.position();
-          ghost = view.vel.clone();
-          ghost.attr('opacity', 0.3);
-          ghost.appendTo(this.viewport);
-          evt.data.ghost = ghost;
-          evt.data.dx = x - position.x;
-          evt.data.dy = y - position.y;
-        }
-        ghost.attr('transform', 'translate(' + [x - data.dx, y - data.dy] + ')');
-      });
+        paper.on('element:pointermove', function (view, evt, x, y) {
+          const data = evt.data;
+          let ghost = data.ghost;
+          if (!ghost) {
+            const position = view.model.position();
+            ghost = view.vel.clone();
+            ghost.attr('opacity', 0.3);
+            ghost.appendTo(this.viewport);
+            evt.data.ghost = ghost;
+            evt.data.dx = x - position.x;
+            evt.data.dy = y - position.y;
+          }
+          ghost.attr('transform', 'translate(' + [x - data.dx, y - data.dy] + ')');
+        });
 
       paper.on('element:pointerup', (view, evt, x, y) => {
         const data = evt.data;
@@ -590,21 +609,6 @@ export default {
         }
       });
 
-      // paper.on('link:pointerclick', (linkView, evt, elementView, magnet, arrowhead) => {
-      //
-      //   return
-      // });
-      //
-      // paper.on('link:mouseenter', (linkView, evt, elementView, magnet, arrowhead) => {
-      //   return
-      // });
-      //
-      // paper.on('link:mousewheel', (_, evt, ox, oy, delta) => {
-      //
-      //   evt.preventDefault();
-      //   zoom(ox, oy, delta);
-      // });
-
       paper.unfreeze();
 
       this.scroller = scroller
@@ -615,7 +619,7 @@ export default {
     createRecords(graph, _inputJson) {
       this.InputRecord = new InputRecord(this.allowedOMTools, _inputJson || this.inputJson)
           .setName(i18n.methods.t('inputName'))
-          .position(300, 200)
+          .position(window.screen.width * 0.20, window.screen.height /10)
           .addTo(graph)
     },
 

@@ -30,14 +30,13 @@ export function deleteStringFromSymbol(string = '', symbol, start) {
 
 export function createKeyValueString(key, value) {
     const validation = ['Array', 'Object']
-    const isValidateByType = validation.includes(value.constructor.name)
-    const isValidateByValue = validation.includes(value)
 
     if (!key) key = 'none'
     if (!value) value = ''
-    if (!isValidateByType && !isValidateByValue) return `${key}: ${value.toString()}`
 
-    else if (isValidateByValue) return `${key}`
-    else if (value.constructor.name === 'Object') return `${key}`
-    else if (value.constructor.name === 'Array') return `${key}`
+    if (!validation.includes(value.constructor.name)
+        && !validation.includes(value)) return `${key}: ${value.toString()}`
+
+    else if (validation.includes(value)) return `${key}`
+    else if (validation.includes(value.constructor.name)) return `${key}`
 }

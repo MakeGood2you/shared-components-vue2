@@ -171,7 +171,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         return {
             id: `${itemId}_${id}`,
             label: `${id}`,
-            icon: 'mapper/document.svg',
+            icon: 'mapper/leaf.svg',
             _type: 'Leaf'
         }
     }
@@ -182,7 +182,7 @@ export class Record extends shapes.standard.HeaderedRecord {
         return {
             id,
             label: id,
-            icon: item.icon || "mapper/document.svg",
+            icon: item.icon || "mapper/leaf.svg",
             _type: item._type || "Leaf"
         };
     }
@@ -377,7 +377,7 @@ export class ObjectMapperRecord extends Record {
                     label,
                     hasDefault: !!schema._default,
                     id: path + label,
-                    icon: 'mapper/document.svg',
+                    icon: 'mapper/leaf.svg',
                     _transformerCode: schema._transformerCode ? schema._transformerCode : undefined,
                 }
                 break
@@ -505,7 +505,7 @@ export class JsonRecord extends Record {
                         id: path + _key,
                         icon: `mapper/${isArray ? 'array' : 'object'}.svg`
                     } : {
-                        icon: 'mapper/document.svg',
+                        icon: 'mapper/leaf.svg',
                         key,
                         isArray,
                         label,

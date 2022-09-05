@@ -40,14 +40,14 @@ export class Record extends shapes.standard.HeaderedRecord {
     defaults() {
         return util.defaultsDeep({
             type: 'mapping.Record',
-            itemHeight: 20,
+            itemHeight: 30,
             itemOffset: 15,
             itemMinLabelWidth: 70,
             itemAboveViewSelector: 'header',
             itemBelowViewSelector: 'footer',
             padding: { top: 35, left: 15, right: 10, bottom: 10 },
             scrollTop: 0,
-            size: { height: 500, width: 300 },
+            size: { height: window.screen.height, width: 800 },
             itemOverflow: true,
             attrs: {
                 root: {
@@ -100,7 +100,7 @@ export class Record extends shapes.standard.HeaderedRecord {
                 itemLabels: {
                     magnet: 'true',
                     cursor: 'pointer',
-                    fontSize: 12,
+                    fontSize: 20,
                     fontFamily: 'Sans-serif',
                     itemHighlight: {
                         fill: '#8cc23d'
@@ -148,18 +148,21 @@ export class Record extends shapes.standard.HeaderedRecord {
         return newItem
     }
 
+
     getDefaultItem(opt = {}) {
         const id = opt.id ? opt.id : this.getItemId()
-        const icon = `mapper/${opt.type ? opt.type.toLowerCase() : 'leaf'}.svg`
+        const icon = `mapper/${opt._type ? opt._type.toLowerCase() : 'leaf'}.svg`
+        const label = cutStringFromSymbol(id, '.', true)
         const newItem = {
             id,
             icon,
-            key: id,
-            label: id,
+            key: opt.key || id,
+            label,
             value: '',
             _type: opt.type || "Leaf",
             isArray: opt.isArray || false
         };
+        debugger
         if (['Object', 'Array'].includes(opt._type)) {
             newItem.items = []
         }
@@ -169,9 +172,10 @@ export class Record extends shapes.standard.HeaderedRecord {
     generateNewItemId(prevId, newId, isChild) {
         const index = prevId.lastIndexOf('.')
         if (index === -1) {
-            if (isChild) return prevId + '.' + newId
 
+            if (isChild) return prevId + '.' + newId
             return newId
+
         } else {
             const result = prevId.substring(0, index + 1)
             return result + newId
@@ -256,21 +260,14 @@ export class JsonRecord extends Record {
 
     static transformJSON2Shape(obj, path = '') {
         // if is object is observed and empty
-
-        if (this.attributes.items && this.attributes.items.length === 0) {
-            this.remove();
-            return
-        }
         if (obj && typeof obj === 'object') {
 
             return Object.keys(obj).map((key) => {
-                const isParentArray = !Array.isArray(obj) && Array.isArray(obj[key])
-                const isArray = Array.isArray(obj) || isParentArray
 
-                if (isArray) {
-                    // debugger
-                }
-                const _key = isArray ? isParentArray ? `${key}` : `[${key}]` : key
+                const collapsed = Array.isArray(obj[key])
+                const isArray = Array.isArray(obj[key])
+
+                const _key = isArray ? `[${key}]` : key
 
                 const label = createKeyValueString(key, obj[key])
 
@@ -280,6 +277,7 @@ export class JsonRecord extends Record {
 
                 const result = items ?
                     {
+                        collapsed: false,
                         _type,
                         key,
                         isArray,
@@ -289,19 +287,20 @@ export class JsonRecord extends Record {
                         id: path + _key,
                         icon: `mapper/${isArray ? 'array' : 'object'}.svg`
                     } : {
+                        collapsed: false,
                         _type: 'Leaf',
                         key,
-                        isArray,
+                        isArray: false,
                         label,
                         value: obj[key],
                         id: path + _key,
                         icon: 'mapper/leaf.svg',
                     }
-                if (isArray && items) {
-                    // debugger
-                }
+
                 return result
             })
+        } else {
+            return undefined
         }
     }
 
@@ -330,29 +329,50 @@ export class JsonRecord extends Record {
         };
     }
 
-    //shape have to be items[0]
     transformShape2JSON(shape) {
-        if (typeof shape === 'undefined') {
-            console.log('shape is undefined')
-            return undefined
-        }
-        if (!Array.isArray(shape)) {
-            const isIncludes = (value) => [null, undefined, '', 'Object', 'Array'].includes(value)
+        if (typeof shape._type === 'undefined') {
+            const type = (
+                Array.isArray(shape)
+                && shape.length > 0
+                && shape[0].key.match('^[0-9]*$')
+            ) ? 'Array' : 'Object'
 
-            const value = isIncludes(shape.value) ? this.transformShape2JSON(shape.items) : shape.value
-
-            return shape.isArray ? value : { [shape.key]: value }
-        }
-        const response = shape.map(_item => this.transformShape2JSON(_item))
-
-        if (shape.isArray) {
-            return response
+            return this.transformShape2JSON({ _type: type, items: shape });
         }
 
-        return response.reduce(
-            (previousValue, currentValue) => {
-                return Object.assign(previousValue, currentValue)
-            }, {})
+        if (shape._type === 'Leaf') return { [shape.key]: shape.value }
+
+        const response = shape.items.map(item => this.transformShape2JSON(item))
+
+        let value = response.reduce(
+            (previousValue, currentValue) => Object.assign(previousValue, currentValue), {}
+        )
+        if (shape._type === 'Array') value = Object.values(value)
+
+        if (!shape.key) return value
+
+        if (['Object', 'Array'].includes(shape._type)) return { [shape.key]: value }
+
+        throw new Error('shape is undefined')
+    }
+
+    getDefaultChildInArray(id, index, opt) {
+        debugger
+        const newId = this.getItemId()
+        const childId = id + '.' + newId
+        const child = this.getDefaultItem({ ...opt, key: newId, id: childId })
+        let result = {
+            items: [child],
+            id,
+            key: `${index}`,
+            label: `${index}`,
+            isArray: false,
+            icon: "mapper/object.svg",
+            value: "object",
+            _type: "Object"
+        }
+
+        return result
     }
 
     itemTemplate(currItem, type) {
@@ -362,7 +382,6 @@ export class JsonRecord extends Record {
         newItem.value = type
         newItem._type = type
         newItem.icon = `mapper/${type.toLowerCase()}.svg`
-        debugger
         switch (type) {
             case 'Leaf':
                 //TODO: Check if is ok with all  senarios
@@ -400,32 +419,35 @@ export class JsonRecord extends Record {
         return childId.substring(0, index)
     }
 
-    setItemInArray(parent, newItem) {
-        const items = structuredClone([newItem])
+    addItemInArray(parent, opt) {
         const index = parent.items.length
         const id = `${parent.id}.[${index}]`
-        let result = {
-            items,
-            id,
-            key: `${index}`,
-            label: `${index}`,
-            isArray: true,
-            icon: "mapper/array.svg",
-            value: "Array",
-            _type: "Array"
+        const child = this.getDefaultChildInArray(id, index, opt)
+        return child
+    }
+
+    createSibling(itemId) {
+        let item = structuredClone(this.item(itemId))
+        const parent = this.item(this.getParentId(item.id))
+
+        let newItem = {}
+        if (parent && parent._type === 'Array') {
+            newItem = this.addItemInArray(parent, { s_type: parent._type })
+        } else {
+            newItem = this.getDefaultItem({ _type: item._type })
         }
-        return result
+        return newItem
     }
 }
 
-export class InputRecord extends JsonRecord {
+export class InputRecord
+    extends JsonRecord {
     constructor(allowedTools, JSON) {
         super(allowedTools, JSON);
     }
 
     isValid2changeType(prevItem, currItem, itemId) {
         if (prevItem._type !== 'Leaf') {
-            debugger
             this.item(itemId, { ...prevItem })
             let dialog = createDialog({
                 // title: i18n.methods.t('issue'),
@@ -466,18 +488,18 @@ export class InputRecord extends JsonRecord {
 
     updateLabel(item) {
         const newItem = { ...item }
-        newItem.key = cutStringFromSymbol(item.key, '.', true,)
+        newItem.key = cutStringFromSymbol(item.key, '.', true)
         newItem.id = this.generateNewItemId(item.id, item.key)
         newItem.label = createKeyValueString(item.key, item.value)
         console.log('updateLabel ', newItem)
-        debugger
         return newItem
     }
 
     changeToLeaf(prevItem, currItem) {
         const newItem = this.itemTemplate(currItem, 'Leaf')
         const itemId = newItem.id
-
+        // check if prevItem was type of array or object
+        // and check if  he has nodes to delete
         if (['Array', 'Object'].includes(prevItem._type)) {
             if (prevItem.items && prevItem.items.length > 0) {
                 let dialog = createDialog({
@@ -517,7 +539,6 @@ export class InputRecord extends JsonRecord {
     }
 
     changeToObject(prevItem, currItem, itemId) {
-        debugger
         const newItem = this.itemTemplate(currItem, 'Object')
         this.item(itemId, newItem)
     }
