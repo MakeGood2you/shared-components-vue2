@@ -47,7 +47,7 @@ export class Record extends shapes.standard.HeaderedRecord {
             itemBelowViewSelector: 'footer',
             padding: { top: 35, left: 15, right: 10, bottom: 10 },
             scrollTop: 0,
-            size: { height: window.screen.height, width: 800 },
+            size: { height: window.screen.height / 1.8, width: 600 },
             itemOverflow: true,
             attrs: {
                 root: {
@@ -100,7 +100,7 @@ export class Record extends shapes.standard.HeaderedRecord {
                 itemLabels: {
                     magnet: 'true',
                     cursor: 'pointer',
-                    fontSize: 20,
+                    fontSize: 16,
                     fontFamily: 'Sans-serif',
                     itemHighlight: {
                         fill: '#8cc23d'
@@ -148,7 +148,6 @@ export class Record extends shapes.standard.HeaderedRecord {
         return newItem
     }
 
-
     getDefaultItem(opt = {}) {
         const id = opt.id ? opt.id : this.getItemId()
         const icon = `mapper/${opt._type ? opt._type.toLowerCase() : 'leaf'}.svg`
@@ -162,7 +161,7 @@ export class Record extends shapes.standard.HeaderedRecord {
             _type: opt.type || "Leaf",
             isArray: opt.isArray || false
         };
-        debugger
+
         if (['Object', 'Array'].includes(opt._type)) {
             newItem.items = []
         }
@@ -342,7 +341,9 @@ export class JsonRecord extends Record {
 
         if (shape._type === 'Leaf') return { [shape.key]: shape.value }
 
-        const response = shape.items.map(item => this.transformShape2JSON(item))
+        if (!shape.items) return
+
+        const response = shape.items ? shape.items.map(item => this.transformShape2JSON(item)) : shape.value;
 
         let value = response.reduce(
             (previousValue, currentValue) => Object.assign(previousValue, currentValue), {}
@@ -356,8 +357,8 @@ export class JsonRecord extends Record {
         throw new Error('shape is undefined')
     }
 
-    getDefaultChildInArray(id, index, opt) {
-        debugger
+    getDefaultChildInArray(id, index, opt, type) {
+
         const newId = this.getItemId()
         const childId = id + '.' + newId
         const child = this.getDefaultItem({ ...opt, key: newId, id: childId })
@@ -367,9 +368,9 @@ export class JsonRecord extends Record {
             key: `${index}`,
             label: `${index}`,
             isArray: false,
-            icon: "mapper/object.svg",
-            value: "object",
-            _type: "Object"
+            icon: `mapper/${type ? type.toLowerCase() : 'object'}.svg`,
+            value: type ? '' : "object",
+            _type: type || "Object"
         }
 
         return result
@@ -420,10 +421,23 @@ export class JsonRecord extends Record {
     }
 
     addItemInArray(parent, opt) {
-        const index = parent.items.length
+        const index = parent.items && parent.items.length || 0
         const id = `${parent.id}.[${index}]`
         const child = this.getDefaultChildInArray(id, index, opt)
         return child
+    }
+
+    updateTypeItemInArray(parent, item) {
+        if (parent && parent.id) {
+            if (parent._type === 'Array') {
+                const index = parent.items.findIndex(i => i.id === item.id)
+                const id = `${parent.id}.[${index}]`
+                const child = this.getDefaultChildInArray(id, index, {}, item._type)
+                return child
+            } else {
+                return this.itemTemplate(item, 'Leaf')
+            }
+        }
     }
 
     createSibling(itemId) {
@@ -470,10 +484,16 @@ export class InputRecord
     }
 
     updateTypeOfNode(prevItem, currItem, itemId) {
-
         switch (currItem._type) {
             case 'Leaf':
-                this.changeToLeaf(prevItem, currItem, itemId)
+                let newItem = currItem
+                const parentId = this.getParentId(currItem.id)
+                const parent = this.item(parentId)
+                if (parent._type === 'Array') {
+                     newItem = this.updateTypeItemInArray(parent, currItem)
+                }
+                this.changeToLeaf(prevItem, currItem, newItem.id)
+                return newItem
                 break;
 
             case 'Array':
@@ -496,11 +516,13 @@ export class InputRecord
     }
 
     changeToLeaf(prevItem, currItem) {
-        const newItem = this.itemTemplate(currItem, 'Leaf')
+        let newItem = this.itemTemplate(currItem, 'Leaf')
         const itemId = newItem.id
+
         // check if prevItem was type of array or object
         // and check if  he has nodes to delete
         if (['Array', 'Object'].includes(prevItem._type)) {
+
             if (prevItem.items && prevItem.items.length > 0) {
                 let dialog = createDialog({
                     title: i18n.methods.t('error'),
@@ -513,7 +535,7 @@ export class InputRecord
                     'action:cancel': function () {
                         this.item(itemId, { ...prevItem })
                         dialog.close();
-                    },
+                    }.bind(this),
                     'action:confirm': function () {
                         this.item(itemId, newItem)
                         dialog.close();

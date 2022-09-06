@@ -187,10 +187,8 @@ export default {
     paper: null,
     scroller: null,
     toolbar: null,
-    toolbarHeight: 40,
     commandManager: null,
 
-    render: 0,
     //Records instance
     InputRecord: {},
   }),
@@ -246,7 +244,7 @@ export default {
           let parent = element.item(parentId)
           if (parent && parent._type === 'Array') {
             element.removeItem(item.id)
-            element.refreshRecord()
+            this.refreshRecord(element)
           } else {
             element.removeItemAndInstances(itemId, element)
           }
@@ -280,13 +278,14 @@ export default {
           }
 
           newChild = element.getDefaultChild(parent.id)
-
           if (parent && parent._type === 'Array') {
             newChild = element.addItemInArray(parent, newChild)
-            element.refreshRecord()
+            element.addItemAtIndex(itemId, Infinity, newChild);
+            this.refreshRecord(element)
+          } else {
+            element.addItemAtIndex(itemId, Infinity, newChild);
           }
 
-          element.addItemAtIndex(itemId, Infinity, newChild);
 
           this.itemEditAction(element, newChild)
 
@@ -295,23 +294,21 @@ export default {
 
         }.bind(this),
 
-        'action:add-next-sibling':
-            function () {
-              const newItem = element.createSibling(itemId)
-              element.addNextSibling(itemId, newItem);
-              this.refreshRecord(element)
-              toolbar.remove();
+        'action:add-next-sibling': function () {
+          const newItem = element.createSibling(itemId)
+          element.addNextSibling(itemId, newItem);
+          this.refreshRecord(element)
+          toolbar.remove();
 
-            }.bind(this),
+        }.bind(this),
 
-        'action:add-prev-sibling':
-            function () {
-              const newItem = element.createSibling(itemId)
-              element.addPrevSibling(itemId, newItem);
-              this.refreshRecord(element)
+        'action:add-prev-sibling': function () {
+          const newItem = element.createSibling(itemId)
+          element.addPrevSibling(itemId, newItem);
+          this.refreshRecord(element)
 
-              toolbar.remove();
-            }.bind(this)
+          toolbar.remove();
+        }.bind(this)
       });
     },
 
@@ -398,14 +395,17 @@ export default {
 
           const currItem = element.item(itemId)
           let newItem = null
-          const _currItem_type = currItem._type
 
           if (prevItem._type !== currItem._type) {
-            element.updateTypeOfNode(prevItem, currItem, itemId)
+
+            newItem = element.updateTypeOfNode(prevItem, currItem, itemId)
 
             // if currItem type has been changed
             // we get the new updated object
-            newItem = element.item(itemId)
+            if (currItem._type !== 'Leaf') {
+              newItem = element.item(currItem.id)
+            }
+
           }
 
           // if true we push the newItem
@@ -548,6 +548,7 @@ export default {
       // });
 
       paper.on('element:magnet:pointerdblclick', (elementView, evt, magnet) => {
+
         evt.stopPropagation();
         const model = elementView.model;
         this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
@@ -566,6 +567,7 @@ export default {
       paper.on('element:magnet:contextmenu', (elementView, evt, magnet) => {
         const model = elementView.model;
         const itemId = elementView.findAttribute('item-id', magnet);
+
         const tools = model.getItemTools(itemId);
         if (tools) {
           evt.stopPropagation();
@@ -578,20 +580,20 @@ export default {
         this.showElementTools(elementView);
       });
 
-        paper.on('element:pointermove', function (view, evt, x, y) {
-          const data = evt.data;
-          let ghost = data.ghost;
-          if (!ghost) {
-            const position = view.model.position();
-            ghost = view.vel.clone();
-            ghost.attr('opacity', 0.3);
-            ghost.appendTo(this.viewport);
-            evt.data.ghost = ghost;
-            evt.data.dx = x - position.x;
-            evt.data.dy = y - position.y;
-          }
-          ghost.attr('transform', 'translate(' + [x - data.dx, y - data.dy] + ')');
-        });
+      paper.on('element:pointermove', function (view, evt, x, y) {
+        const data = evt.data;
+        let ghost = data.ghost;
+        if (!ghost) {
+          const position = view.model.position();
+          ghost = view.vel.clone();
+          ghost.attr('opacity', 0.3);
+          ghost.appendTo(this.viewport);
+          evt.data.ghost = ghost;
+          evt.data.dx = x - position.x;
+          evt.data.dy = y - position.y;
+        }
+        ghost.attr('transform', 'translate(' + [x - data.dx, y - data.dy] + ')');
+      });
 
       paper.on('element:pointerup', (view, evt, x, y) => {
         const data = evt.data;
@@ -619,7 +621,7 @@ export default {
     createRecords(graph, _inputJson) {
       this.InputRecord = new InputRecord(this.allowedOMTools, _inputJson || this.inputJson)
           .setName(i18n.methods.t('inputName'))
-          .position(window.screen.width * 0.20, window.screen.height /10)
+          .position(window.screen.width * 0.30, window.screen.height / 10)
           .addTo(graph)
     },
 
@@ -651,6 +653,10 @@ export default {
     scroller.center();
     paper.unfreeze();
     this.$emit('isLoaded')
+  },
+  beforeDestroy() {
+
+    this.onUpdateInput()
   },
 
   watch: {
