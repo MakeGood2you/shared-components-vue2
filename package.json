@@ -9,7 +9,7 @@
   "files": [
     "dist/*",
     "src/**/*.vue",
-    "src/css/styles.scss",
+    "src/css//**/*",
     "src/assets/**/*"
   ],
   "sideEffects": false,

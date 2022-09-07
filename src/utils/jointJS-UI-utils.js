@@ -8,7 +8,14 @@ export function createInspector(element, itemPath, config, title) {
         cell: element,
         live: false,
         inputs: config && itemPath ? util.setByPath({}, itemPath, config) : undefined,
-        title: title ? title : '(data, context) => { Your Code is here }'
+        title: title ? title : 'Title',
+        validateInput: function (el, path, type, inspector) {
+
+            var value = inspector.parse(type, inspector.getFieldValue(el, type), el);
+            const item = element.getItemByPath(element.attributes.items, itemPath)
+            debugger
+            return true;
+        }
     });
     inspector.render();
     inspector.el.style.position = 'relative';

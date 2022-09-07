@@ -383,6 +383,7 @@ export class JsonRecord extends Record {
         newItem.value = type
         newItem._type = type
         newItem.icon = `mapper/${type.toLowerCase()}.svg`
+
         switch (type) {
             case 'Leaf':
                 //TODO: Check if is ok with all  senarios
@@ -486,14 +487,9 @@ export class InputRecord
     updateTypeOfNode(prevItem, currItem, itemId) {
         switch (currItem._type) {
             case 'Leaf':
-                let newItem = currItem
-                const parentId = this.getParentId(currItem.id)
-                const parent = this.item(parentId)
-                if (parent._type === 'Array') {
-                     newItem = this.updateTypeItemInArray(parent, currItem)
-                }
-                this.changeToLeaf(prevItem, currItem, newItem.id)
-                return newItem
+                delete currItem.items
+                this.changeToLeaf(prevItem, currItem)
+                return currItem
                 break;
 
             case 'Array':

@@ -286,8 +286,7 @@ export default {
             element.addItemAtIndex(itemId, Infinity, newChild);
           }
 
-
-          this.itemEditAction(element, newChild)
+          // this.itemEditAction(element, newChild.id)
 
           if (element.isItemCollapsed(itemId))
             element.toggleItemCollapse(itemId);
@@ -333,6 +332,7 @@ export default {
           toolbar.remove();
           this.copyRecordJSON({ element: this.InputRecord })
         }.bind(this),
+
         'action:import-json': function () {
           toolbar.remove();
           let elTextarea = null
@@ -354,11 +354,27 @@ export default {
             'action:change': function () {
               elTextarea = document.getElementById('importJson')
               const value = elTextarea.value
-              const input = JSON.parse(value)
-              element.remove();
-              self.createRecords(self.graph, input)
-              self.onUpdateInput(input)
-              dialog.close();
+              try {
+                const input = JSON.parse(value)
+                element.remove();
+                self.createRecords(self.graph, input)
+                dialog.close();
+              } catch (err) {
+                const dialog = createDialog({
+                  width: 400,
+                  title: 'Error',
+                  closeButton: false,
+                  content: 'Invalid input',
+                  buttons: ['ok']
+                });
+                dialog.open();
+                dialog.on({
+                  'action:ok': function () {
+                    dialog.close();
+                  }.bind(this),
+                })
+              }
+
             }
           })
 
@@ -397,7 +413,6 @@ export default {
           let newItem = null
 
           if (prevItem._type !== currItem._type) {
-
             newItem = element.updateTypeOfNode(prevItem, currItem, itemId)
 
             // if currItem type has been changed
@@ -405,7 +420,6 @@ export default {
             if (currItem._type !== 'Leaf') {
               newItem = element.item(currItem.id)
             }
-
           }
 
           // if true we push the newItem
@@ -433,7 +447,13 @@ export default {
     },
 
     itemEditAction(element, itemId) {
+      const parentId = element.getParentId(itemId)
+      const parent = element.item(parentId);
       let config = element.getInspectorConfig(itemId);
+      if (parent && parent._type === 'Array') {
+        config.key.readonly = true
+        config = structuredClone(config)
+      }
       const path = element.getItemPathArray(itemId);
       this.itemAction(element, config, path, itemId, 'item');
     },
@@ -551,7 +571,9 @@ export default {
 
         evt.stopPropagation();
         const model = elementView.model;
-        this.itemEditAction(model, elementView.findAttribute('item-id', magnet));
+        const itemId = elementView.findAttribute('item-id', magnet);
+
+        this.itemEditAction(model, itemId);
       });
 
       paper.on('element:contextmenu', (elementView, evt) => {
@@ -635,9 +657,6 @@ export default {
       });
     },
 
-    importJSONToElementAction(element, itemId) {
-
-    },
   },
   created() {
     getLanguage(this.lang)
@@ -653,10 +672,6 @@ export default {
     scroller.center();
     paper.unfreeze();
     this.$emit('isLoaded')
-  },
-  beforeDestroy() {
-
-    this.onUpdateInput()
   },
 
   watch: {
@@ -728,7 +743,7 @@ export default {
   color: #262c29 !important;
 }
 
-.text, .select {
+.text, .number, .select {
   color: black !important;
 }
 

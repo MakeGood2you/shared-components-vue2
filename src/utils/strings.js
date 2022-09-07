@@ -10,6 +10,7 @@ export function _replaceAll(string, target, replaceTo) {
 }
 
 export function cutStringFromSymbol(string = '', symbol, isReverse = false, end) {
+    if (typeof string !== 'string') string = JSON.stringify(string)
     const index = isReverse ? string.lastIndexOf(symbol) : string.indexOf(symbol)
 
     if (index === -1) return string
