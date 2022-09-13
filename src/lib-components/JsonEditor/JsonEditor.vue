@@ -10,7 +10,6 @@ import { InputRecord } from './jsonEditorLogic/shapes';
 import i18n, { getLanguage } from '../../services/i18n.vue.mixin';
 import { createDialog, createInspector } from '../../utils/jointJS-UI-utils';
 import { textArea } from '../../utils/html-tamples';
-// import { createKeyValueString, cutStringFromSymbol, setLabel } from '../../utils/strings';
 
 export default {
   name: "JsonEditor",
@@ -286,8 +285,6 @@ export default {
             element.addItemAtIndex(itemId, Infinity, newChild);
           }
 
-          // this.itemEditAction(element, newChild.id)
-
           if (element.isItemCollapsed(itemId))
             element.toggleItemCollapse(itemId);
 
@@ -430,7 +427,7 @@ export default {
 
 
           element.item(prevItem.id, newItem)
-
+          this.refreshRecord()
           inspector.remove();
           dialog.close();
         }.bind(this)
@@ -450,10 +447,13 @@ export default {
       const parentId = element.getParentId(itemId)
       const parent = element.item(parentId);
       let config = element.getInspectorConfig(itemId);
+
       if (parent && parent._type === 'Array') {
+        debugger
         config.key.readonly = true
         config = structuredClone(config)
       }
+
       const path = element.getItemPathArray(itemId);
       this.itemAction(element, config, path, itemId, 'item');
     },
@@ -572,7 +572,7 @@ export default {
         evt.stopPropagation();
         const model = elementView.model;
         const itemId = elementView.findAttribute('item-id', magnet);
-
+        debugger
         this.itemEditAction(model, itemId);
       });
 

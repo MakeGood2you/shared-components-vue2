@@ -36,6 +36,20 @@ export class Record extends shapes.standard.HeaderedRecord {
         )
         return values
     }
+    setNewIds2AllNodes(shape, keySearch = 'id', newId) {
+        shape = shape ? shape : this.attributes.items[0]
+        Object.keys(shape).map((key, index) => {
+                if (key === keySearch) {
+                  // TODO : Change the currect Id
+                }
+
+                if (shape[key] && typeof shape[key] === 'object') {
+                    this.getValuesFromShape(shape[key], keySearch, )
+                }
+            }
+        )
+        return values
+    }
 
     defaults() {
         return util.defaultsDeep({
