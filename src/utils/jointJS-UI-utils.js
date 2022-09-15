@@ -8,7 +8,7 @@ export function createInspector(element, itemPath, config, title) {
         cell: element,
         live: false,
         inputs: config && itemPath ? util.setByPath({}, itemPath, config) : undefined,
-        title: title ? title : 'Title',
+        title: title ? title : '(data, context) => { Your Code is here }'
     });
     inspector.render();
     inspector.el.style.position = 'relative';
