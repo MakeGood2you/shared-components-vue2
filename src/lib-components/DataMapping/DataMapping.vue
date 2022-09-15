@@ -981,7 +981,7 @@ export default Vue.extend({
 
         const eventName = 'connect'
         const element = elementViewConnected.model;
-        const link = linkView.modelx
+        const link = linkView.model
         const validation = this.checkLinksRules('link:connect', linkView, element, arrowhead)
         if (!validation.isValid) {
           return
@@ -1213,7 +1213,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import "../../../node_modules/@OtailO-recommerce/rappid/rappid.css";
 @import 'src/css/jointJS-style';
 
 .canvas {
